@@ -29,7 +29,7 @@ const categories: Category[] = [
 ];
 
 const timingOptions = ['Le plus tôt possible', 'Aujourd’hui', 'Cette semaine', 'Je choisis une date'];
-const apiBase = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:3000`;
+const apiBase = '';
 
 export default function App() {
   const [step, setStep] = useState(0);
@@ -106,15 +106,13 @@ export default function App() {
         body: JSON.stringify(client),
       });
 
-      if (!clientResponse.ok) throw new Error('Impossible de créer le client.');
+      if (!clientResponse.ok) {
+        const text = await clientResponse.text();
+        throw new Error(`Création du client impossible (${clientResponse.status}) ${text}`);
+      }
       const clientData = await clientResponse.json();
 
-      const description = [
-        subcategory,
-        answers.details,
-        `Moment: ${answers.timing}`,
-        `Adresse: ${answers.address}`,
-      ].join('\n');
+      const description = [subcategory, answers.details, `Moment: ${answers.timing}`, `Adresse: ${answers.address}`].join('\n');
 
       const missionResponse = await fetch(`${apiBase}/api/missions`, {
         method: 'POST',
@@ -126,7 +124,10 @@ export default function App() {
         }),
       });
 
-      if (!missionResponse.ok) throw new Error('Impossible de créer la mission.');
+      if (!missionResponse.ok) {
+        const text = await missionResponse.text();
+        throw new Error(`Création de la mission impossible (${missionResponse.status}) ${text}`);
+      }
       const missionData = await missionResponse.json();
       setMissionId(String(missionData.mission.id));
     } catch (submissionError) {
