@@ -19,22 +19,23 @@ const statusText: Record<string, [string, string, string]> = {
   completed: ['✅', 'La job est terminée', 'La facture est prête dans Mes missions.'],
 };
 
+function getMissionIdShownOnScreen() {
+  const successBox = document.querySelector<HTMLElement>('.flow-card .success-box');
+  const match = successBox?.textContent?.match(/Mission\s+#(\d+)/i);
+  return match?.[1] || null;
+}
+
 function updateVisibleClientScreen(mission: ClientMission) {
   const status = statusText[mission.status] || ['ℹ️', 'Mise à jour de la mission', `Statut : ${mission.status}`];
-  const titles = Array.from(document.querySelectorAll<HTMLElement>('.flow-title'));
-  const title = titles.find((node) =>
-    node.textContent?.includes('Ta demande est envoyée') ||
-    node.dataset.liveMission === 'true'
-  );
+  const visibleId = getMissionIdShownOnScreen();
+  if (visibleId && String(visibleId) !== String(mission.id)) return;
 
-  if (title) {
-    title.dataset.liveMission = 'true';
+  const title = document.querySelector<HTMLElement>('.flow-card .flow-title');
+  const successBox = document.querySelector<HTMLElement>('.flow-card .success-box');
+
+  if (title && successBox) {
     title.textContent = `${status[0]} ${status[1]}`;
-    const card = title.closest('.flow-card');
-    const successBox = card?.querySelector<HTMLElement>('.success-box');
-    if (successBox) {
-      successBox.textContent = `Mission #${mission.id} • ${status[2]}`;
-    }
+    successBox.textContent = `Mission #${mission.id} • ${status[2]}`;
   }
 }
 
@@ -57,11 +58,14 @@ function ClientMissionTracker() {
 
         const data = await response.json();
         const missions = (data.missions || []) as ClientMission[];
-        const latest = missions.find((item) => item.status !== 'completed') || missions[0] || null;
+        const visibleId = getMissionIdShownOnScreen();
+        const current = visibleId
+          ? missions.find((item) => String(item.id) === String(visibleId)) || null
+          : missions.find((item) => item.status !== 'completed') || missions[0] || null;
 
         if (!cancelled) {
-          setMission(latest);
-          if (latest) updateVisibleClientScreen(latest);
+          setMission(current);
+          if (current) updateVisibleClientScreen(current);
         }
       } catch {
         if (!cancelled) setMission(null);
@@ -69,11 +73,11 @@ function ClientMissionTracker() {
     };
 
     refresh();
-    const timer = window.setInterval(refresh, 1500);
+    const timer = window.setInterval(refresh, 1000);
     const observer = new MutationObserver(() => {
       if (mission) updateVisibleClientScreen(mission);
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     return () => {
       cancelled = true;
@@ -82,17 +86,20 @@ function ClientMissionTracker() {
     };
   }, [mission?.id, mission?.status]);
 
-  if (!mission) return null;
+  useEffect(() => {
+    if (mission) updateVisibleClientScreen(mission);
+  }, [mission]);
+
+  if (!mission || !getMissionIdShownOnScreen()) return null;
   const [icon, title, detail] = statusText[mission.status] || ['ℹ️', mission.status, 'Le statut de ta mission vient d’être mis à jour.'];
 
   return (
     <aside className="client-live-tracker">
       <div>
         <div className="client-live-eyebrow">Mission #{mission.id}{mission.category_name ? ` • ${mission.category_name}` : ''}</div>
-        <strong>{title}</strong>
+        <strong>{icon} {title}</strong>
         <span>{detail}</span>
       </div>
-      <div className="client-live-icon">{icon}</div>
     </aside>
   );
 }
