@@ -1,8 +1,11 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { createPool } from './db.js';
 
 const pool = createPool();
 const app = Fastify({ logger: true });
+
+await app.register(cors, { origin: true });
 
 const defaultCategories = [
   { id: 'menage', name: 'Ménage' },
@@ -35,7 +38,7 @@ async function initializeDatabase() {
 app.get('/health', async (_request, reply) => {
   try {
     await pool.query('SELECT 1');
-    return { ok: true, service: 'faislajob-api', version: '0.3.0', database: 'connected' };
+    return { ok: true, service: 'faislajob-api', version: '0.4.0', database: 'connected' };
   } catch (error) {
     app.log.error(error);
     return reply.code(503).send({ ok: false, service: 'faislajob-api', database: 'disconnected' });
@@ -50,12 +53,32 @@ app.get('/api/categories', async () => {
 app.post('/api/clients', async (request, reply) => {
   const body = request.body as { name?: string; email?: string; phone?: string };
   if (!body?.name?.trim()) return reply.code(400).send({ error: 'name is required' });
+
+  const name = body.name.trim();
+  const email = body.email?.trim().toLowerCase() || null;
+  const phone = body.phone?.trim() || null;
+
+  if (email) {
+    const existing = await pool.query(
+      `SELECT id, name, email, phone, created_at FROM clients WHERE LOWER(email) = $1 LIMIT 1`,
+      [email],
+    );
+    if (existing.rowCount) {
+      const updated = await pool.query(
+        `UPDATE clients SET name = $1, phone = $2, updated_at = NOW() WHERE id = $3
+         RETURNING id, name, email, phone, created_at`,
+        [name, phone, existing.rows[0].id],
+      );
+      return { client: updated.rows[0], existing: true };
+    }
+  }
+
   const result = await pool.query(
     `INSERT INTO clients (name, email, phone) VALUES ($1, $2, $3)
      RETURNING id, name, email, phone, created_at`,
-    [body.name.trim(), body.email?.trim() || null, body.phone?.trim() || null],
+    [name, email, phone],
   );
-  return reply.code(201).send({ client: result.rows[0] });
+  return reply.code(201).send({ client: result.rows[0], existing: false });
 });
 
 app.get('/api/clients/:id', async (request, reply) => {
