@@ -56,14 +56,25 @@ function LogoInjector(){
   return null;
 }
 
+function RoleGuardMessage({user}:{user:User}){
+  return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><div className="eyebrow">Compte {user.role==='provider'?'partenaire':'client'}</div><h1 className="flow-title">Cette page n’est pas disponible pour ce compte</h1><p className="flow-copy">Tu es connecté comme {user.role==='provider'?'partenaire':'client'}. FaisLaJob garde maintenant les deux portails séparés pour éviter de mélanger les sessions.</p><button className="primary-button full-button" onClick={()=>{window.location.href='/'}}>Retour à mon portail</button></section></main>;
+}
+
 function RootRouter(){
   const [user,setUser]=useState<User|null|undefined>(undefined);
   const path=window.location.pathname;
   const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
-  useEffect(()=>{loadUser();const t=window.setInterval(loadUser,1200);return()=>window.clearInterval(t)},[]);
-  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null)};
-  if(path==='/request'||path.startsWith('/request/'))return <><App/><ClientMissionTracker/></>;
+  useEffect(()=>{loadUser()},[]);
+  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
+
   if(user===undefined)return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
+
+  const isRequest=path==='/request'||path.startsWith('/request/');
+  if(isRequest){
+    if(user?.role==='provider')return <RoleGuardMessage user={user}/>;
+    return <><App/><ClientMissionTracker/></>;
+  }
+
   if(user)return <UserPortal user={user} onLogout={logout}/>;
   return <><App/><ClientMissionTracker/></>;
 }
