@@ -1,14 +1,7 @@
 import Fastify from 'fastify';
-import pg from 'pg';
+import { createPool } from './db.js';
 
-const { Pool } = pg;
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL is required');
-}
-
-const pool = new Pool({ connectionString: databaseUrl });
+const pool = createPool();
 const app = Fastify({ logger: true });
 
 const defaultCategories = [
