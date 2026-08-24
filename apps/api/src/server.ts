@@ -35,40 +35,65 @@ async function initializeDatabase() {
 app.get('/health', async (_request, reply) => {
   try {
     await pool.query('SELECT 1');
-    return {
-      ok: true,
-      service: 'faislajob-api',
-      version: '0.1.0',
-      database: 'connected',
-    };
+    return { ok: true, service: 'faislajob-api', version: '0.2.0', database: 'connected' };
   } catch (error) {
     app.log.error(error);
-    return reply.code(503).send({
-      ok: false,
-      service: 'faislajob-api',
-      database: 'disconnected',
-    });
+    return reply.code(503).send({ ok: false, service: 'faislajob-api', database: 'disconnected' });
   }
 });
 
 app.get('/api/categories', async () => {
-  const result = await pool.query<{ id: string; name: string }>(
-    'SELECT id, name FROM categories ORDER BY name ASC',
-  );
-
+  const result = await pool.query('SELECT id, name FROM categories ORDER BY name ASC');
   return { categories: result.rows };
 });
 
-app.addHook('onClose', async () => {
-  await pool.end();
+app.post('/api/clients', async (request, reply) => {
+  const body = request.body as { name?: string; email?: string; phone?: string };
+  if (!body?.name?.trim()) return reply.code(400).send({ error: 'name is required' });
+  const result = await pool.query(
+    `INSERT INTO clients (name, email, phone) VALUES ($1, $2, $3)
+     RETURNING id, name, email, phone, created_at`,
+    [body.name.trim(), body.email?.trim() || null, body.phone?.trim() || null],
+  );
+  return reply.code(201).send({ client: result.rows[0] });
 });
+
+app.get('/api/clients/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const result = await pool.query('SELECT id, name, email, phone, created_at, updated_at FROM clients WHERE id = $1', [id]);
+  if (!result.rowCount) return reply.code(404).send({ error: 'client not found' });
+  return { client: result.rows[0] };
+});
+
+app.post('/api/missions', async (request, reply) => {
+  const body = request.body as { clientId?: number; categoryId?: string; description?: string; scheduledAt?: string };
+  if (!body?.clientId || !body?.categoryId) return reply.code(400).send({ error: 'clientId and categoryId are required' });
+  const result = await pool.query(
+    `INSERT INTO missions (client_id, category_id, description, scheduled_at)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, client_id, provider_id, category_id, status, description, scheduled_at, created_at`,
+    [body.clientId, body.categoryId, body.description?.trim() || null, body.scheduledAt || null],
+  );
+  return reply.code(201).send({ mission: result.rows[0] });
+});
+
+app.get('/api/missions/:id', async (request, reply) => {
+  const { id } = request.params as { id: string };
+  const result = await pool.query(
+    `SELECT m.id, m.client_id, m.provider_id, m.category_id, c.name AS category_name,
+            m.status, m.description, m.scheduled_at, m.created_at, m.updated_at
+     FROM missions m LEFT JOIN categories c ON c.id = m.category_id WHERE m.id = $1`,
+    [id],
+  );
+  if (!result.rowCount) return reply.code(404).send({ error: 'mission not found' });
+  return { mission: result.rows[0] };
+});
+
+app.addHook('onClose', async () => { await pool.end(); });
 
 const port = Number(process.env.PORT ?? 3000);
 const host = process.env.HOST ?? '0.0.0.0';
 
 initializeDatabase()
   .then(() => app.listen({ port, host }))
-  .catch((error) => {
-    app.log.error(error);
-    process.exit(1);
-  });
+  .catch((error) => { app.log.error(error); process.exit(1); });
