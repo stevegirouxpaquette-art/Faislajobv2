@@ -65,6 +65,13 @@ function RootRouter(){
   const path=window.location.pathname;
   const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
   useEffect(()=>{loadUser()},[]);
+  useEffect(()=>{
+    if(user!==null)return;
+    let stopped=false;
+    const check=async()=>{if(stopped)return;try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(r.ok){const next=(await r.json()).user as User;if(!stopped)setUser(next)}}catch{}};
+    const timer=window.setInterval(check,800);
+    return()=>{stopped=true;window.clearInterval(timer)};
+  },[user]);
   const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
 
   if(user===undefined)return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
