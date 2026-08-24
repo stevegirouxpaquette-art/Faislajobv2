@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import AdminPortal from './AdminPortal';
+import UserPortal from './UserPortal';
 import './styles.css';
+import './portal.css';
 
 const BRAND_LOGO='https://335a351f-416d-4e29-89d5-2204a8876ab2.sandbox.floot.app/_cdn/static/40f11d09-fbf4-43b4-8bbf-9da5343620ff-IMG_2043.png';
 
 type ClientMission = { id: string; status: string; category_name?: string };
+type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
 const statusText: Record<string, [string, string, string]> = {
   requested: ['🔎', 'Recherche d’un partenaire', 'On cherche un partenaire disponible pour ta job.'],
   offered: ['📣', 'Recherche d’un partenaire', 'Ta demande est envoyée aux partenaires disponibles.'],
@@ -52,5 +55,17 @@ function LogoInjector(){
   return null;
 }
 
+function RootRouter(){
+  const [user,setUser]=useState<User|null|undefined>(undefined);
+  const path=window.location.pathname;
+  const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
+  useEffect(()=>{loadUser();const t=window.setInterval(loadUser,1200);return()=>window.clearInterval(t)},[]);
+  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null)};
+  if(path==='/request'||path.startsWith('/request/'))return <><App/><ClientMissionTracker/></>;
+  if(user===undefined)return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
+  if(user)return <UserPortal user={user} onLogout={logout}/>;
+  return <><App/><ClientMissionTracker/></>;
+}
+
 const isAdmin=window.location.pathname==='/admin'||window.location.pathname.startsWith('/admin/');
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><LogoInjector/>{isAdmin?<AdminPortal/>:<><App/><ClientMissionTracker/></>}</React.StrictMode>);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><LogoInjector/>{isAdmin?<AdminPortal/>:<RootRouter/>}</React.StrictMode>);
