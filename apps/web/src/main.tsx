@@ -9,6 +9,7 @@ import './portal.css';
 import './client-ui-upgrade';
 import './client-experience.css';
 
+declare global{interface Window{__fjReveal?:()=>void}}
 const BRAND_LOGO='https://335a351f-416d-4e29-89d5-2204a8876ab2.sandbox.floot.app/_cdn/static/40f11d09-fbf4-43b4-8bbf-9da5343620ff-IMG_2043.png';
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
 
@@ -23,6 +24,7 @@ function RootRouter(){
  const isRequest=path==='/request'||path.startsWith('/request/');
  const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
  useEffect(()=>{loadUser()},[]);
+ useEffect(()=>{if(isRequest||user===null||user?.role==='provider'){requestAnimationFrame(()=>window.__fjReveal?.())}},[isRequest,user]);
  useEffect(()=>{if(user!==null)return;let stopped=false;const check=async()=>{if(stopped)return;try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(r.ok){const next=(await r.json()).user as User;if(!stopped)setUser(next)}}catch{}};const timer=window.setInterval(check,800);return()=>{stopped=true;window.clearInterval(timer)}},[user]);
  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
  if(user===undefined){return isRequest?<RequestBootScreen/>:<main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>}
@@ -33,3 +35,4 @@ function RootRouter(){
 
 const isAdmin=window.location.pathname==='/admin'||window.location.pathname.startsWith('/admin/');
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><LogoInjector/>{isAdmin?<AdminPortal/>:<RootRouter/>}</React.StrictMode>);
+if(isAdmin)requestAnimationFrame(()=>window.__fjReveal?.());
