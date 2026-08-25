@@ -5,6 +5,7 @@ import AdminPortal from './AdminPortal';
 import UserPortal from './UserPortal';
 import './styles.css';
 import './portal.css';
+import './client-ui-upgrade';
 
 const BRAND_LOGO='https://335a351f-416d-4e29-89d5-2204a8876ab2.sandbox.floot.app/_cdn/static/40f11d09-fbf4-43b4-8bbf-9da5343620ff-IMG_2043.png';
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
