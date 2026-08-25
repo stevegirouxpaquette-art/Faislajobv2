@@ -1,3 +1,5 @@
+export {};
+
 function applyRequestPremium(){
   document.querySelectorAll<HTMLElement>('.flow-card').forEach(card=>{
     const eyebrow=card.querySelector<HTMLElement>('.eyebrow');
