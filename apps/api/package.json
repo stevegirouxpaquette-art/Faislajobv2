@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && node scripts/inject-push.mjs",
+    "build": "node scripts/inject-push.mjs && tsc",
     "start": "node dist/server.js"
   },
   "dependencies": {
