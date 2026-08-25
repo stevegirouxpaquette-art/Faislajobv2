@@ -1,3 +1,4 @@
+export {};
 const categoryDescriptions:Record<string,string>={
 'Ménage':'Maison, condo, nettoyage, etc.',
 'Petites réparations':'Plomberie, électricité, assemblage, etc.',
