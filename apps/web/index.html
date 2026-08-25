@@ -8,26 +8,9 @@
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/stability.ts"></script>
     <script type="module" src="/src/main.tsx"></script>
     <script type="module" src="/src/completion-flow.ts"></script>
     <script type="module" src="/src/client-upgrades.ts"></script>
-    <script>
-      (() => {
-        if (!location.pathname.startsWith('/request')) return;
-        let done = false;
-        const goToPortalAfterMissionCreation = () => {
-          if (done) return;
-          const success = document.querySelector('.flow-card .success-box');
-          const loggedInClient = document.querySelector('.user-chip');
-          if (!success || !loggedInClient || !/Mission\s+#\d+/i.test(success.textContent || '')) return;
-          done = true;
-          observer.disconnect();
-          setTimeout(() => location.replace('/'), 150);
-        };
-        const observer = new MutationObserver(goToPortalAfterMissionCreation);
-        observer.observe(document.getElementById('root') || document.body, { childList: true, subtree: true, characterData: true });
-        goToPortalAfterMissionCreation();
-      })();
-    </script>
   </body>
 </html>
