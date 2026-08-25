@@ -1,17 +1,24 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="fj-booting">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#071222" />
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
+      html,body{background:#071222}
+      html.fj-booting #root{visibility:hidden}
+      html.fj-booting body::before{content:'';position:fixed;inset:0;background:#071222;z-index:2147483646}
       .client-live-tracker,
       #client-mission-upgrade,
       .cl-up{display:none!important}
     </style>
+    <script>
+      window.__fjReveal=function(){document.documentElement.classList.remove('fj-booting')};
+      setTimeout(()=>window.__fjReveal&&window.__fjReveal(),2500);
+    </script>
     <title>FaisLaJob</title>
   </head>
   <body>
@@ -36,10 +43,10 @@
         };
       })();
     </script>
-    <script type="module" src="/src/stability.ts?v=8"></script>
-    <script type="module" src="/src/mission-redirect.ts?v=8"></script>
-    <script type="module" src="/src/main.tsx?v=8"></script>
-    <script type="module" src="/src/client-active-card.ts?v=8"></script>
-    <script type="module" src="/src/completion-flow.ts?v=8"></script>
+    <script type="module" src="/src/stability.ts?v=9"></script>
+    <script type="module" src="/src/mission-redirect.ts?v=9"></script>
+    <script type="module" src="/src/main.tsx?v=9"></script>
+    <script type="module" src="/src/client-active-card.ts?v=9"></script>
+    <script type="module" src="/src/completion-flow.ts?v=9"></script>
   </body>
 </html>
