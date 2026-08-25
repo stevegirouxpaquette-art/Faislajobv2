@@ -1,52 +1,19 @@
 import { useState } from 'react';
+import './public-home.css';
 
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
-
 type Props={onAuthenticated:(user:User)=>void};
 
 export default function AuthScreen({onAuthenticated}:Props){
+  const[showForm,setShowForm]=useState(false);
   const[mode,setMode]=useState<'login'|'register'>('login');
   const[role,setRole]=useState<'client'|'provider'>('client');
-  const[name,setName]=useState('');
-  const[email,setEmail]=useState('');
-  const[phone,setPhone]=useState('');
-  const[password,setPassword]=useState('');
-  const[loading,setLoading]=useState(false);
-  const[error,setError]=useState('');
+  const[name,setName]=useState('');const[email,setEmail]=useState('');const[phone,setPhone]=useState('');const[password,setPassword]=useState('');
+  const[loading,setLoading]=useState(false);const[error,setError]=useState('');
+  const openForm=(next:'login'|'register')=>{setMode(next);setShowForm(true);setError('');window.scrollTo({top:0,behavior:'smooth'})};
+  const submit=async()=>{setLoading(true);setError('');try{const endpoint=mode==='login'?'/api/auth/login':'/api/auth/register';const body=mode==='login'?{email,password}:{name,email,phone,password,role};const r=await fetch(endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Connexion impossible.');onAuthenticated(data.user as User)}catch(e){setError(e instanceof Error?e.message:'Une erreur est survenue.')}finally{setLoading(false)}};
 
-  const submit=async()=>{
-    setLoading(true);setError('');
-    try{
-      const endpoint=mode==='login'?'/api/auth/login':'/api/auth/register';
-      const body=mode==='login'?{email,password}:{name,email,phone,password,role};
-      const r=await fetch(endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      const data=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(data.error||'Connexion impossible.');
-      onAuthenticated(data.user as User);
-    }catch(e){setError(e instanceof Error?e.message:'Une erreur est survenue.')}finally{setLoading(false)}
-  };
+  if(showForm)return <main className="public-home"><section className="auth-panel"><button className="auth-back" onClick={()=>setShowForm(false)}>← Retour</button><div className="auth-logo">FaisLa<span>Job</span></div><div className="role-switch"><button className={role==='client'?'active':''} onClick={()=>setRole('client')}>Client</button><button className={role==='provider'?'active':''} onClick={()=>setRole('provider')}>Partenaire</button></div><div className="auth-kicker">{mode==='login'?'Connexion':'Créer un compte'}</div><h1>{mode==='login'?'Content de te revoir':'Bienvenue chez FaisLaJob'}</h1><p>{role==='client'?'Demande un service en quelques étapes simples.':'Accède directement aux jobs disponibles et à tes missions.'}</p>{mode==='register'&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Nom complet"/>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Courriel" inputMode="email" autoCapitalize="none"/>{mode==='register'&&<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Téléphone" inputMode="tel"/>}<input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mot de passe" type="password"/>{error&&<div className="auth-error">⚠️ {error}</div>}<button className="home-primary" onClick={submit} disabled={loading||!email.trim()||password.length<8||(mode==='register'&&name.trim().length<2)}>{loading?'Patiente…':mode==='login'?'Se connecter':'Créer mon compte'}</button><button className="home-secondary" onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}}>{mode==='login'?'Pas encore de compte? Créer un compte':'J’ai déjà un compte'}</button></section></main>;
 
-  return <main style={{minHeight:'100vh',background:'linear-gradient(180deg,#06111f,#071728)',color:'#f8fbff',padding:'34px 20px',display:'flex',justifyContent:'center'}}>
-    <section style={{width:'100%',maxWidth:460}}>
-      <div style={{fontSize:38,fontWeight:900,color:'#39a9ff',marginBottom:28}}>FaisLaJob</div>
-      <div style={{background:'linear-gradient(180deg,#0b1b2e,#0a1727)',border:'1px solid #284765',borderRadius:28,padding:24,boxShadow:'0 24px 70px rgba(0,0,0,.3)'}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,background:'#101d30',padding:6,borderRadius:16,marginBottom:22}}>
-          <button onClick={()=>setRole('client')} style={{border:0,borderRadius:12,padding:'12px 10px',fontWeight:900,fontSize:16,background:role==='client'?'#f4f7fb':'transparent',color:role==='client'?'#07111f':'#95a8bf'}}>Client</button>
-          <button onClick={()=>setRole('provider')} style={{border:0,borderRadius:12,padding:'12px 10px',fontWeight:900,fontSize:16,background:role==='provider'?'#f4f7fb':'transparent',color:role==='provider'?'#07111f':'#95a8bf'}}>Partenaire</button>
-        </div>
-        <div style={{color:'#69bfff',fontWeight:900,letterSpacing:'.14em',fontSize:12,textTransform:'uppercase'}}>{mode==='login'?'Connexion':'Créer un compte'}</div>
-        <h1 style={{fontSize:34,lineHeight:1.05,margin:'10px 0 8px'}}>{mode==='login'?'Content de te revoir':'Bienvenue chez FaisLaJob'}</h1>
-        <p style={{color:'#9aabc0',lineHeight:1.55,margin:'0 0 22px'}}>{role==='client'?'Demande un service en quelques étapes simples.':'Accède directement aux jobs disponibles et à tes missions.'}</p>
-        {mode==='register'&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Nom complet" style={inputStyle}/>} 
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Courriel" inputMode="email" autoCapitalize="none" style={inputStyle}/>
-        {mode==='register'&&<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Téléphone" inputMode="tel" style={inputStyle}/>} 
-        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mot de passe" type="password" style={inputStyle}/>
-        {error&&<div style={{background:'#3b1820',border:'1px solid #753241',color:'#ffc3cc',padding:'11px 13px',borderRadius:12,marginBottom:14,fontWeight:700}}>⚠️ {error}</div>}
-        <button onClick={submit} disabled={loading||!email.trim()||password.length<8||(mode==='register'&&name.trim().length<2)} style={{width:'100%',border:0,borderRadius:15,padding:'15px 16px',fontSize:17,fontWeight:900,background:'linear-gradient(90deg,#18a8ff,#1877ff)',color:'white',opacity:loading?.65:1}}>{loading?'Patiente…':mode==='login'?'Se connecter':'Créer mon compte'}</button>
-        <button onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}} style={{width:'100%',marginTop:12,border:'1px solid #2d4c69',borderRadius:15,padding:'13px 16px',fontSize:15,fontWeight:800,background:'#0d1b2b',color:'#c8d7e8'}}>{mode==='login'?'Pas encore de compte? Créer un compte':'J’ai déjà un compte'}</button>
-      </div>
-    </section>
-  </main>;
+  return <main className="public-home"><section className="hero-card"><img src="/faislajob-hero.svg" alt="Mascotte FaisLaJob" className="hero-art"/><div className="hero-overlay"><div className="home-logo">FaisLa<span>Job</span></div><p className="hero-eyebrow">LE COUP DE MAIN QU’IL TE FAUT, QUAND TU EN AS BESOIN.</p><div className="benefit-list"><div>⚡ <span><strong>Rapide & simple</strong><small>Demande en quelques étapes</small></span></div><div>🛡️ <span><strong>Fiable & sécuritaire</strong><small>Prestataires vérifiés</small></span></div><div>📍 <span><strong>Service local</strong><small>Dans ton secteur</small></span></div></div></div></section><button className="request-cta" onClick={()=>window.location.href='/request'}><span><small>NOUVELLE DEMANDE</small><strong>Dis-nous ce dont tu as <em>besoin</em></strong><b>On s’occupe du reste.</b></span><i>→</i></button><section className="services-block"><div className="section-kicker">DES CENTAINES DE SERVICES</div><h2>On a la personne pour le faire.</h2><div className="service-grid"><div>🧹<span>Ménage</span></div><div>🔧<span>Petites réparations</span></div><div>🌿<span>Extérieur & terrain</span></div><div>📦<span>Déménagement</span></div><div>🐾<span>Animaux et plus</span></div></div><p className="trust-line">🛡️ Prestataires vérifiés • Assurés • Évalués par des clients comme toi</p></section><button className="home-primary" onClick={()=>openForm('login')}>👤 Se connecter <span>›</span></button><button className="home-secondary" onClick={()=>openForm('register')}>👤＋ Créer un compte <span>›</span></button><div className="rating-strip"><span>Des clients satisfaits</span><strong>★★★★★ <b>4,9/5</b></strong></div></main>;
 }
-
-const inputStyle={width:'100%',boxSizing:'border-box' as const,marginBottom:12,border:'1px solid #2a4967',borderRadius:14,padding:'14px 15px',fontSize:16,background:'#091827',color:'#f7fbff',outline:'none'};
