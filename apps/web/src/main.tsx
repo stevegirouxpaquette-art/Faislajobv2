@@ -3,14 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import AdminPortal from './AdminPortal';
 import UserPortal from './UserPortal';
+import RequestFlow from './RequestFlow';
 import './styles.css';
 import './portal.css';
 import './client-ui-upgrade';
 import './client-experience.css';
-import './request-premium.css';
-import './request-premium';
-import './request-experience';
-import './address-autocomplete';
 
 const BRAND_LOGO='https://335a351f-416d-4e29-89d5-2204a8876ab2.sandbox.floot.app/_cdn/static/40f11d09-fbf4-43b4-8bbf-9da5343620ff-IMG_2043.png';
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
@@ -27,7 +24,7 @@ function RootRouter(){
  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
  if(user===undefined)return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
  const isRequest=path==='/request'||path.startsWith('/request/');
- if(isRequest){if(user?.role==='provider')return <RoleGuardMessage user={user}/>;return <App/>}
+ if(isRequest){if(user?.role==='provider')return <RoleGuardMessage user={user}/>;return <RequestFlow/>}
  if(user)return <UserPortal user={user} onLogout={logout}/>;
  return <App/>
 }
