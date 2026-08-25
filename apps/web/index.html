@@ -8,8 +8,9 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
-      .client-live-tracker{display:none!important}
-      #client-mission-upgrade{display:none!important}
+      .client-live-tracker,
+      #client-mission-upgrade,
+      .cl-up{display:none!important}
     </style>
     <title>FaisLaJob</title>
   </head>
@@ -17,6 +18,12 @@
     <div id="root"></div>
     <script>
       (()=>{
+        const removeLegacyMissionCard=()=>{
+          document.querySelectorAll('#client-mission-upgrade,.cl-up').forEach(el=>el.remove());
+        };
+        removeLegacyMissionCard();
+        new MutationObserver(removeLegacyMissionCard).observe(document.documentElement,{subtree:true,childList:true});
+
         if(!location.pathname.startsWith('/request')) return;
         const nativeFetch=window.fetch.bind(window);
         window.fetch=async(input,init)=>{
@@ -29,9 +36,9 @@
         };
       })();
     </script>
-    <script type="module" src="/src/stability.ts?v=5"></script>
-    <script type="module" src="/src/mission-redirect.ts?v=5"></script>
-    <script type="module" src="/src/main.tsx?v=5"></script>
-    <script type="module" src="/src/completion-flow.ts?v=5"></script>
+    <script type="module" src="/src/stability.ts?v=6"></script>
+    <script type="module" src="/src/mission-redirect.ts?v=6"></script>
+    <script type="module" src="/src/main.tsx?v=6"></script>
+    <script type="module" src="/src/completion-flow.ts?v=6"></script>
   </body>
 </html>
