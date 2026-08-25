@@ -1,18 +1,44 @@
-import {clientOrderId} from './publicIds';
-
-const BLUE='#2693ff';
-type M={id:string;status:string;category_name?:string;category_id?:string;description?:string;provider_id?:string|null;created_at?:string;started_at?:string|null;completed_at?:string|null};
-const steps=[['requested','Demande'],['assigned','Partenaire'],['en_route','En route'],['arrived','Arrivé'],['in_progress','Travail'],['completed','Terminé']];
-const rank:Record<string,number>={requested:0,offered:0,assigned:1,en_route:2,arrived:3,in_progress:4,completed:5};
 let busy=false;
-let detailOpen=false;
-let helpOpen=false;
+
 function esc(v:any){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;')}
-function style(){if(document.getElementById('client-upgrade-style'))return;const s=document.createElement('style');s.id='client-upgrade-style';s.textContent=`.cl-up{border:1px solid #2a3d57;background:#0c1728;border-radius:22px;padding:20px;margin:0 0 22px;color:#fff}.cl-progress{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:18px 0}.cl-step{text-align:center;color:#73849b;font-size:11px;font-weight:800}.cl-step i{display:block;height:6px;border-radius:8px;background:#243247;margin-bottom:7px}.cl-step.done{color:#b9dcff}.cl-step.done i{background:${BLUE}}.cl-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.cl-actions button{border:1px solid #3a4b64;background:#111d2e;color:#fff;border-radius:13px;padding:12px 15px;font-weight:800}.cl-actions .primary{background:${BLUE};border-color:${BLUE}}.cl-detail{display:none;margin-top:16px;border-top:1px solid #2b3a50;padding-top:16px}.cl-detail.open{display:block}.cl-grid{display:grid;grid-template-columns:1fr auto;gap:10px 18px;color:#aebdd0}.cl-grid strong{color:#fff;text-align:right}.cl-help{display:none;margin-top:12px;padding:14px;border-radius:14px;background:#111d2e}.cl-help.open{display:block}.cl-help button{display:block;width:100%;text-align:left;margin:7px 0}.cl-pref{margin-top:18px}.cl-pref label{display:block;color:#aebdd0;font-weight:700;margin:12px 0 6px}.cl-pref input,.cl-pref textarea,.cl-pref select{box-sizing:border-box;width:100%;padding:13px;border-radius:12px;border:1px solid #35465f;background:#091321;color:#fff;font-size:16px}@media(max-width:620px){.cl-step{font-size:9px}.cl-up{padding:16px}}`;document.head.appendChild(s)}
-async function active(){const r=await fetch('/api/client/missions',{credentials:'same-origin',cache:'no-store'});if(!r.ok)return null;const d=await r.json();const a=(d.missions||[]).find((m:M)=>!['completed','cancelled'].includes(m.status));if(!a)return null;try{const f=await fetch(`/api/missions/${a.id}`,{credentials:'same-origin',cache:'no-store'});if(f.ok){const x=await f.json();return x.mission||x}}catch{}return a}
-async function provider(id?:string|null){if(!id)return null;try{const r=await fetch(`/api/providers/${id}`,{credentials:'same-origin',cache:'no-store'});if(r.ok){const d=await r.json();return d.provider||d}}catch{}return null}
-function fmt(d?:string|null){return d?new Date(d).toLocaleString('fr-CA',{dateStyle:'medium',timeStyle:'short'}):'—'}
-async function renderMission(){const main=document.querySelector<HTMLElement>('.user-portal-main');if(!main)return;const m=await active();let box=document.getElementById('client-mission-upgrade');if(!m){box?.remove();detailOpen=false;helpOpen=false;return}const p=await provider(m.provider_id);if(!box){box=document.createElement('section');box.id='client-mission-upgrade';box.className='cl-up';main.prepend(box)}const r=rank[m.status]??0;const orderId=clientOrderId(m.id);box.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><div><div style="color:#83c3ff;font-weight:900;text-transform:uppercase;letter-spacing:.08em">Commande #${esc(orderId)} • ${esc(m.category_name||'Service')}</div><h2 style="font-size:30px;margin:8px 0">${esc(m.status==='requested'||m.status==='offered'?'En attente d’un partenaire':m.status==='assigned'?'Partenaire trouvé':m.status==='en_route'?'Votre partenaire est en route':m.status==='arrived'?'Votre partenaire est arrivé':m.status==='in_progress'?'Job en cours':'Commande')}</h2>${p?`<div style="font-weight:800">👤 ${esc(p.name)}</div>`:''}</div><div style="font-size:32px">${m.status==='in_progress'?'🛠️':m.status==='en_route'?'🚗':m.status==='arrived'?'📍':'📋'}</div></div><div class="cl-progress">${steps.map((x,i)=>`<div class="cl-step ${i<=r?'done':''}"><i></i>${x[1]}</div>`).join('')}</div><div class="cl-actions"><button class="primary" id="cl-details">Voir les détails</button><button id="cl-help">J’ai besoin d’aide</button></div><div class="cl-detail ${detailOpen?'open':''}" id="cl-detail"><div class="cl-grid"><span>Commande</span><strong>#${esc(orderId)}</strong><span>Catégorie</span><strong>${esc(m.category_name||m.category_id||'—')}</strong><span>Créée</span><strong>${fmt(m.created_at)}</strong><span>Début du travail</span><strong>${fmt(m.started_at)}</strong><span>Partenaire</span><strong>${esc(p?.name||'En attente')}</strong></div>${m.description?`<div style="margin-top:15px;color:#aebdd0"><strong style="color:#fff">Détails de la demande</strong><p style="white-space:pre-line;line-height:1.5">${esc(m.description)}</p></div>`:''}</div><div class="cl-help ${helpOpen?'open':''}" id="cl-helpbox"><strong>Quel est le problème?</strong><button data-help="Partenaire absent">Partenaire absent</button><button data-help="Problème avec le travail">Problème avec le travail</button><button data-help="Problème de facturation">Problème de facturation</button><button data-help="Autre problème">Autre problème</button><div id="cl-helpmsg" style="color:#8ed0ff;margin-top:8px"></div></div>`;box.querySelector('#cl-details')?.addEventListener('click',()=>{detailOpen=!detailOpen;box?.querySelector('#cl-detail')?.classList.toggle('open',detailOpen)});box.querySelector('#cl-help')?.addEventListener('click',()=>{helpOpen=!helpOpen;box?.querySelector('#cl-helpbox')?.classList.toggle('open',helpOpen)});box.querySelectorAll<HTMLElement>('[data-help]').forEach(b=>b.onclick=()=>{const msg=box?.querySelector<HTMLElement>('#cl-helpmsg');if(msg)msg.textContent=`✓ ${b.dataset.help} — demande d’aide préparée. L’équipe pourra la traiter depuis la commande.`})}
-function profile(){const panel=document.querySelector<HTMLElement>('.profile-panel');if(!panel||document.getElementById('client-profile-upgrade'))return;const saved=JSON.parse(localStorage.getItem('faislajob_client_preferences')||'{}');const x=document.createElement('div');x.id='client-profile-upgrade';x.className='cl-pref';x.innerHTML=`<h3>Mes préférences</h3><label>Adresse principale</label><input id="cp-address" value="${esc(saved.address||'')}" placeholder="Adresse pour les prochaines demandes"><label>Mode de paiement préféré</label><select id="cp-pay"><option>Virement Interac</option></select><label>Instructions habituelles</label><textarea id="cp-notes" rows="3" placeholder="Ex. sonner à la porte, stationnement...">${esc(saved.notes||'')}</textarea><button class="portal-primary" id="cp-save" style="margin-top:14px">Enregistrer mes préférences</button><div id="cp-msg" style="color:#8ed0ff;margin-top:9px"></div>`;panel.appendChild(x);x.querySelector('#cp-save')?.addEventListener('click',()=>{localStorage.setItem('faislajob_client_preferences',JSON.stringify({address:(x.querySelector<HTMLInputElement>('#cp-address')?.value||''),payment:'Virement Interac',notes:(x.querySelector<HTMLTextAreaElement>('#cp-notes')?.value||'')}));const msg=x.querySelector<HTMLElement>('#cp-msg');if(msg)msg.textContent='✓ Préférences enregistrées.'})}
-async function run(){if(busy)return;busy=true;try{style();const me=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!me.ok)return;const u=(await me.json()).user;if(u?.role!=='client')return;await renderMission();profile()}catch{}finally{busy=false}}
-setTimeout(run,700);setInterval(run,4000);new MutationObserver(()=>{profile()}).observe(document.documentElement,{subtree:true,childList:true});
+
+function style(){
+  if(document.getElementById('client-upgrade-style'))return;
+  const s=document.createElement('style');
+  s.id='client-upgrade-style';
+  s.textContent=`.cl-pref{margin-top:18px}.cl-pref label{display:block;color:#aebdd0;font-weight:700;margin:12px 0 6px}.cl-pref input,.cl-pref textarea,.cl-pref select{box-sizing:border-box;width:100%;padding:13px;border-radius:12px;border:1px solid #35465f;background:#091321;color:#fff;font-size:16px}`;
+  document.head.appendChild(s);
+}
+
+function profile(){
+  const panel=document.querySelector<HTMLElement>('.profile-panel');
+  if(!panel||document.getElementById('client-profile-upgrade'))return;
+  const saved=JSON.parse(localStorage.getItem('faislajob_client_preferences')||'{}');
+  const x=document.createElement('div');
+  x.id='client-profile-upgrade';
+  x.className='cl-pref';
+  x.innerHTML=`<h3>Mes préférences</h3><label>Adresse principale</label><input id="cp-address" value="${esc(saved.address||'')}" placeholder="Adresse pour les prochaines demandes"><label>Mode de paiement préféré</label><select id="cp-pay"><option>Virement Interac</option></select><label>Instructions habituelles</label><textarea id="cp-notes" rows="3" placeholder="Ex. sonner à la porte, stationnement...">${esc(saved.notes||'')}</textarea><button class="portal-primary" id="cp-save" style="margin-top:14px">Enregistrer mes préférences</button><div id="cp-msg" style="color:#8ed0ff;margin-top:9px"></div>`;
+  panel.appendChild(x);
+  x.querySelector('#cp-save')?.addEventListener('click',()=>{
+    localStorage.setItem('faislajob_client_preferences',JSON.stringify({address:(x.querySelector<HTMLInputElement>('#cp-address')?.value||''),payment:'Virement Interac',notes:(x.querySelector<HTMLTextAreaElement>('#cp-notes')?.value||'')}));
+    const msg=x.querySelector<HTMLElement>('#cp-msg');
+    if(msg)msg.textContent='✓ Préférences enregistrées.';
+  });
+}
+
+async function run(){
+  if(busy)return;
+  busy=true;
+  try{
+    style();
+    const me=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});
+    if(!me.ok)return;
+    const u=(await me.json()).user;
+    if(u?.role!=='client')return;
+    profile();
+  }catch{}finally{busy=false}
+}
+
+setTimeout(run,700);
+setInterval(run,4000);
+new MutationObserver(()=>profile()).observe(document.documentElement,{subtree:true,childList:true});
