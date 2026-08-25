@@ -16,14 +16,16 @@ function LogoInjector(){useEffect(()=>{const apply=()=>{document.querySelectorAl
 
 function RoleGuardMessage({user}:{user:User}){return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><div className="eyebrow">Compte {user.role==='provider'?'partenaire':'client'}</div><h1 className="flow-title">Cette page n’est pas disponible pour ce compte</h1><p className="flow-copy">Tu es connecté comme {user.role==='provider'?'partenaire':'client'}. FaisLaJob garde maintenant les deux portails séparés pour éviter de mélanger les sessions.</p><button className="primary-button full-button" onClick={()=>{window.location.href='/'}}>Retour à mon portail</button></section></main>}
 
+function RequestBootScreen(){return <main style={{minHeight:'100vh',background:'#061321',padding:'24px 16px'}}><section style={{maxWidth:720,margin:'0 auto',background:'linear-gradient(180deg,#071525,#081827)',border:'1px solid #24415f',borderRadius:24,padding:22}}><div style={{color:'#55b8ff',fontWeight:900,letterSpacing:'.12em',fontSize:12,textTransform:'uppercase'}}>Demande de service</div><div style={{height:6,background:'#12263b',borderRadius:999,margin:'18px 0 28px',overflow:'hidden'}}><div style={{width:'14%',height:'100%',background:'linear-gradient(90deg,#22b4ff,#147dff)'}}/></div><div style={{height:34,width:'68%',background:'#10243a',borderRadius:10,marginBottom:18}}/><div style={{height:82,background:'#0b1a2b',border:'1px solid #29445f',borderRadius:16,marginBottom:12}}/><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>{[0,1,2,3].map(i=><div key={i} style={{height:112,background:'#0b1a2b',border:'1px solid #29445f',borderRadius:16}}/>)}</div></section></main>}
+
 function RootRouter(){
  const[user,setUser]=useState<User|null|undefined>(undefined),path=window.location.pathname;
+ const isRequest=path==='/request'||path.startsWith('/request/');
  const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
  useEffect(()=>{loadUser()},[]);
  useEffect(()=>{if(user!==null)return;let stopped=false;const check=async()=>{if(stopped)return;try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(r.ok){const next=(await r.json()).user as User;if(!stopped)setUser(next)}}catch{}};const timer=window.setInterval(check,800);return()=>{stopped=true;window.clearInterval(timer)}},[user]);
  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
- if(user===undefined)return <main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
- const isRequest=path==='/request'||path.startsWith('/request/');
+ if(user===undefined){return isRequest?<RequestBootScreen/>:<main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>}
  if(isRequest){if(user?.role==='provider')return <RoleGuardMessage user={user}/>;return <RequestFlow/>}
  if(user)return <UserPortal user={user} onLogout={logout}/>;
  return <App/>
