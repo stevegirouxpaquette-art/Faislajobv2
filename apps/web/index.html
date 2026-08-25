@@ -4,14 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <style>
+      .client-live-tracker{display:none!important}
+    </style>
     <title>FaisLaJob</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/stability.ts"></script>
-    <script type="module" src="/src/mission-redirect.ts"></script>
-    <script type="module" src="/src/main.tsx"></script>
-    <script type="module" src="/src/completion-flow.ts"></script>
-    <script type="module" src="/src/client-upgrades.ts"></script>
+    <script>
+      (()=>{
+        if(!location.pathname.startsWith('/request')) return;
+        const nativeFetch=window.fetch.bind(window);
+        window.fetch=async(input,init)=>{
+          const url=typeof input==='string'?input:(input&&input.url)||'';
+          const method=((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+          if(method==='GET' && /\/api\/missions\/[^/?]+(?:\?|$)/.test(url) && !/\/billing(?:\?|$)/.test(url)){
+            return new Response('{}',{status:404,headers:{'Content-Type':'application/json'}});
+          }
+          return nativeFetch(input,init);
+        };
+      })();
+    </script>
+    <script type="module" src="/src/stability.ts?v=4"></script>
+    <script type="module" src="/src/mission-redirect.ts?v=4"></script>
+    <script type="module" src="/src/main.tsx?v=4"></script>
+    <script type="module" src="/src/completion-flow.ts?v=4"></script>
+    <script type="module" src="/src/client-upgrades.ts?v=4"></script>
   </body>
 </html>
