@@ -1,15 +1,16 @@
 const ALPHABET='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 function encodeNumericId(value:string|number|null|undefined,length:number,salt:number){
-  const n=BigInt(ALPHABET.length)**BigInt(length);
-  let x=BigInt(Math.max(0,Number(value||0)));
-  const a=BigInt((0x9e3779b1 + salt*2)|1);
-  const b=BigInt(0x45d9f3b + salt*7919);
+  const base=BigInt(ALPHABET.length);
+  const n=base**BigInt(length);
+  const x=BigInt(Math.max(0,Number(value||0)))%n;
+  const a=2654435761n+BigInt(salt*2); // always odd, therefore invertible modulo 32^length
+  const b=73244475n+BigInt(salt*7919);
   let y=(x*a+b)%n;
   let out='';
   for(let i=0;i<length;i++){
-    out=ALPHABET[Number(y%BigInt(ALPHABET.length))]+out;
-    y/=BigInt(ALPHABET.length);
+    out=ALPHABET[Number(y%base)]+out;
+    y/=base;
   }
   return out;
 }
