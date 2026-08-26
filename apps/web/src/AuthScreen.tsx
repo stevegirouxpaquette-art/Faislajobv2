@@ -14,7 +14,7 @@ export default function AuthScreen({onAuthenticated}:Props){
 
   useEffect(()=>{
     let cancelled=false;
-    fetch('/faislajob-home-exact.webp.b64',{cache:'no-store'})
+    fetch('/faislajob-home-exact-v2.webp.b64',{cache:'no-store'})
       .then(r=>{if(!r.ok)throw new Error('artwork');return r.text()})
       .then(t=>{if(!cancelled)setHomeArtwork(`data:image/webp;base64,${t.trim()}`)})
       .catch(()=>{if(!cancelled)setHomeArtwork('')});
