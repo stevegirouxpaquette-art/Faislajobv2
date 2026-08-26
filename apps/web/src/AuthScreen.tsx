@@ -14,10 +14,12 @@ export default function AuthScreen({onAuthenticated}:Props){
 
   useEffect(()=>{
     let cancelled=false;
-    fetch('/faislajob-home-exact-v2.webp.b64',{cache:'no-store'})
-      .then(r=>{if(!r.ok)throw new Error('artwork');return r.text()})
-      .then(t=>{if(!cancelled)setHomeArtwork(`data:image/webp;base64,${t.trim()}`)})
-      .catch(()=>{if(!cancelled)setHomeArtwork('')});
+    Promise.all([
+      fetch('/faislajob-home-v6-part1.txt',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('artwork-1');return r.text()}),
+      fetch('/faislajob-home-v6-part2.txt',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('artwork-2');return r.text()})
+    ]).then(([a,b])=>{
+      if(!cancelled)setHomeArtwork(`data:image/webp;base64,${a.trim()}${b.trim()}`)
+    }).catch(()=>{if(!cancelled)setHomeArtwork('')});
     return()=>{cancelled=true};
   },[]);
 
@@ -28,7 +30,7 @@ export default function AuthScreen({onAuthenticated}:Props){
 
   return <main className="exact-home-shell">
     <div className="exact-home-card">
-      {homeArtwork?<img src={homeArtwork} alt="Accueil FaisLaJob" className="exact-home-image"/>:<div className="exact-home-loading">FaisLaJob</div>}
+      {homeArtwork?<img src={homeArtwork} alt="Accueil FaisLaJob" className="exact-home-image"/>:<div className="exact-home-loading">Chargement de FaisLaJob…</div>}
       <button className="exact-hotspot exact-request" aria-label="Nouvelle demande" onClick={()=>window.location.href='/request'} />
       <button className="exact-hotspot exact-login" aria-label="Se connecter" onClick={()=>openForm('login')} />
       <button className="exact-hotspot exact-register" aria-label="Créer un compte" onClick={()=>openForm('register')} />
