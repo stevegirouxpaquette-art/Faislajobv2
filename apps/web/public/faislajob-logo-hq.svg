@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1168 282" role="img" aria-labelledby="t d">
+  <title id="t">FaisLaJob.ca</title><desc id="d">Tes corvées, notre mission.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="142" cy="116" r="88" stroke="#fff" stroke-width="13"/>
+    <path d="M76 98 L142 42 L208 98" stroke="#fff" stroke-width="13"/>
+    <path d="M98 100 V151 H185 V100" stroke="#fff" stroke-width="11"/>
+    <g fill="#fff" stroke="none">
+      <rect x="130" y="91" width="13" height="13" rx="2"/><rect x="149" y="91" width="13" height="13" rx="2"/><rect x="130" y="110" width="13" height="13" rx="2"/><rect x="149" y="110" width="13" height="13" rx="2"/>
+    </g>
+    <path d="M35 161 h46" stroke="#168CFF" stroke-width="6"/>
+    <path d="M25 174 h55" stroke="#168CFF" stroke-width="6"/>
+    <path d="M52 142 c18-16 33-21 52-13 l31 15" stroke="#fff" stroke-width="9"/>
+    <circle cx="91" cy="125" r="10" fill="#fff" stroke="none"/>
+    <path d="M73 160 l16-29 28 14 -15 29" stroke="#fff" stroke-width="9"/>
+    <path d="M41 166 l25-26 20 18 -24 25" stroke="#fff" stroke-width="9"/>
+    <path d="M160 150 L192 179 L249 84" stroke="#ff9a08" stroke-width="20"/>
+  </g>
+  <text x="298" y="145" font-family="Inter,Arial,Helvetica,sans-serif" font-size="94" font-weight="900" font-style="italic" letter-spacing="-5">
+    <tspan fill="#fff">Fais</tspan><tspan fill="#0f78ff">La</tspan><tspan fill="#ff9508">Job</tspan><tspan fill="#fff" font-size="43" font-style="normal" letter-spacing="-1">.ca</tspan>
+  </text>
+  <line x1="330" y1="195" x2="1080" y2="195" stroke="#0f78ff" stroke-width="4" opacity=".9"/>
+  <rect x="298" y="186" width="38" height="4" rx="2" fill="#0f78ff"/>
+  <text x="404" y="229" fill="#fff" font-family="Inter,Arial,Helvetica,sans-serif" font-size="26" font-weight="800" letter-spacing="8">TES CORVÉES, NOTRE MISSION.</text>
+</svg>
