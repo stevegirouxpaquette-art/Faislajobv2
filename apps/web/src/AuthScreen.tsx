@@ -15,5 +15,22 @@ export default function AuthScreen({onAuthenticated}:Props){
 
   if(showForm)return <main className="public-home"><section className="auth-panel"><button className="auth-back" onClick={()=>setShowForm(false)}>← Retour</button><div className="auth-logo">FaisLa<span>Job</span></div><div className="role-switch"><button className={role==='client'?'active':''} onClick={()=>setRole('client')}>Client</button><button className={role==='provider'?'active':''} onClick={()=>setRole('provider')}>Partenaire</button></div><div className="auth-kicker">{mode==='login'?'Connexion':'Créer un compte'}</div><h1>{mode==='login'?'Content de te revoir':'Bienvenue chez FaisLaJob'}</h1><p>{role==='client'?'Demande un service en quelques étapes simples.':'Accède directement aux jobs disponibles et à tes missions.'}</p>{mode==='register'&&<input value={name} onChange={e=>setName(e.target.value)} placeholder="Nom complet"/>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Courriel" inputMode="email" autoCapitalize="none"/>{mode==='register'&&<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Téléphone" inputMode="tel"/>}<input value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mot de passe" type="password"/>{error&&<div className="auth-error">⚠️ {error}</div>}<button className="home-primary" onClick={submit} disabled={loading||!email.trim()||password.length<8||(mode==='register'&&name.trim().length<2)}>{loading?'Patiente…':mode==='login'?'Se connecter':'Créer mon compte'}</button><button className="home-secondary" onClick={()=>{setMode(mode==='login'?'register':'login');setError('')}}>{mode==='login'?'Pas encore de compte? Créer un compte':'J’ai déjà un compte'}</button></section></main>;
 
-  return <main className="premium-home-shell"><div className="premium-home-shot"><img src="/faislajob-home-premium.webp" alt="Accueil FaisLaJob"/><button className="shot-hotspot shot-request" aria-label="Nouvelle demande" onClick={()=>window.location.href='/request'}></button><button className="shot-hotspot shot-login" aria-label="Se connecter" onClick={()=>openForm('login')}></button><button className="shot-hotspot shot-register" aria-label="Créer un compte" onClick={()=>openForm('register')}></button></div></main>;
+  return <main className="fj-home">
+    <section className="fj-hero">
+      <div className="fj-topbar"><div className="fj-logo">FaisLa<span>Job</span></div><button className="fj-sector">📍 <span>Votre secteur<br/><b>Trois-Rivières + 25 km</b></span>⌄</button></div>
+      <div className="fj-tagline">LE COUP DE MAIN QU’IL TE FAUT,<strong>QUAND TU EN AS BESOIN.</strong></div>
+      <div className="fj-hero-grid">
+        <div className="fj-benefits"><div><i>⚡</i><span><b>Rapide & simple</b><small>Demande en quelques étapes</small></span></div><div><i>🛡️</i><span><b>Fiable & sécuritaire</b><small>Prestataires vérifiés</small></span></div><div><i>📍</i><span><b>Service local</b><small>Dans ton secteur</small></span></div></div>
+        <div className="fj-mascot"><img src="/faislajob-hero2.webp" alt="Mascotte FaisLaJob"/><span>On s’occupe<br/>du reste !</span></div>
+      </div>
+    </section>
+
+    <button className="fj-request" onClick={()=>window.location.href='/request'}><span><small>NOUVELLE DEMANDE</small><strong>Dis-nous ce dont<br/>tu as <em>besoin</em></strong><b>On s’occupe du reste.</b></span><i>→</i></button>
+
+    <section className="fj-services"><div className="fj-kicker">DES CENTAINES DE SERVICES</div><h2>On a la personne pour le faire.</h2><div className="fj-service-grid"><div>🧹<span>Ménage</span></div><div>🛠️<span>Petites<br/>réparations</span></div><div>🌿<span>Extérieur<br/>& terrain</span></div><div>🚚<span>Déménagement</span></div><div>🐾<span>Animaux<br/>et plus</span></div></div></section>
+
+    <div className="fj-trust"><span>🛡️ Prestataires vérifiés</span><span>👥 Assurés</span><span>☆ Évalués par des clients comme toi</span></div>
+    <div className="fj-auth-actions"><button className="fj-login" onClick={()=>openForm('login')}>👤 <b>Se connecter</b> ›</button><button className="fj-register" onClick={()=>openForm('register')}>👤＋ <b>Créer un compte</b> ›</button></div>
+    <div className="fj-rating"><span>Plus de 1000+ clients satisfaits</span><strong>★★★★★ <b>4,9/5</b></strong></div>
+  </main>;
 }
