@@ -12,7 +12,7 @@ import './profile-logout';
 import './push-client';
 
 declare global{interface Window{__fjReveal?:()=>void}}
-const BRAND_LOGO='/faislajob-logo.webp';
+const BRAND_LOGO='/faislajob-logo-v2.webp?v=20260826-2';
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
 
 function LogoInjector(){useEffect(()=>{const apply=()=>{document.querySelectorAll<HTMLElement>('.brand-button').forEach(el=>{if(el.dataset.logoApplied==='1')return;el.dataset.logoApplied='1';el.textContent='';const img=document.createElement('img');img.src=BRAND_LOGO;img.alt='FaisLaJob.ca';img.style.height='52px';img.style.width='auto';img.style.maxWidth='190px';img.style.objectFit='contain';img.style.display='block';el.appendChild(img)});document.querySelectorAll<HTMLElement>('.admin-logo').forEach(el=>{if(el.dataset.logoApplied==='1')return;el.dataset.logoApplied='1';const hasAdmin=/admin/i.test(el.textContent||'');el.textContent='';el.style.display='flex';el.style.alignItems='center';el.style.gap='9px';const img=document.createElement('img');img.src=BRAND_LOGO;img.alt='FaisLaJob.ca';img.style.height='46px';img.style.width='auto';img.style.maxWidth='175px';img.style.objectFit='contain';img.style.display='block';el.appendChild(img);if(hasAdmin){const badge=document.createElement('span');badge.textContent='Admin';badge.style.fontSize='.72rem';badge.style.fontWeight='900';badge.style.padding='4px 7px';badge.style.borderRadius='999px';badge.style.background='#1577E6';badge.style.color='white';el.appendChild(badge)}})};apply();const observer=new MutationObserver(apply);observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect()},[]);return null}
