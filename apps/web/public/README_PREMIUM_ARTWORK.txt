@@ -1,0 +1,1 @@
+Premium homepage artwork is stored as a binary asset in this repository and referenced by AuthScreen.tsx.
