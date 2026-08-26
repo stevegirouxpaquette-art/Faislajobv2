@@ -7,7 +7,7 @@ type User={id:string;email:string;role:'client'|'provider';client_id:string|null
 type Props={onAuthenticated:(user:User)=>void};
 
 const services=[['🧹','Ménage'],['🛠️','Petites réparations'],['🌿','Extérieur & terrain'],['🚚','Déménagement'],['🐾','Animaux et plus']] as const;
-const BRAND_LOGO='/faislajob-logo-v2.webp?v=20260826-2';
+const BRAND_LOGO='/faislajob-logo-v3.webp?v=20260826-3';
 const Logo=({className}:{className:string})=><img src={BRAND_LOGO} alt="FaisLaJob.ca" className={className} style={{height:'auto',width:'min(100%,290px)',objectFit:'contain',display:'block'}}/>;
 
 export default function AuthScreen({onAuthenticated}:Props){
