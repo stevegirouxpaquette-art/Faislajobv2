@@ -1,0 +1,1 @@
+The exact premium homepage artwork is stored as apps/web/public/faislajob-home-exact.webp and rendered by AuthScreen.tsx with clickable overlays for request/login/register.
