@@ -1,1 +1,2 @@
-export default '/faislajob-mascot-exact.png';
+import mascotExact from './assets/faislajob-mascot-exact.png';
+export default mascotExact;
