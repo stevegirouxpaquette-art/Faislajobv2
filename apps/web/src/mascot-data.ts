@@ -1,2 +1,2 @@
-import mascotExact from './assets/mascotte-faislajob-transparent.webp';
+const mascotExact = '/faislajob-home-premium.webp';
 export default mascotExact;
