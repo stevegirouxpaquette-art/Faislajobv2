@@ -26,7 +26,7 @@ export default function AuthScreen({onAuthenticated}:Props){
       <div className="fj-tagline">LE COUP DE MAIN QU’IL TE FAUT,<strong>QUAND TU EN AS BESOIN.</strong></div>
       <div className="fj-hero-body">
         <div className="fj-benefits"><div><i>⚡</i><span><b>Rapide & simple</b><small>Demande en quelques étapes</small></span></div><div><i>✓</i><span><b>Fiable & sécuritaire</b><small>Prestataires vérifiés</small></span></div><div><i>📍</i><span><b>Service local</b><small>Dans ton secteur</small></span></div></div>
-        <div className="fj-mascot-card"><img src="/faislajob-mascot-vector.svg" alt="Mascotte FaisLaJob" className="fj-mascot-image"/><div className="fj-rest">On s’occupe<br/>du reste !</div></div>
+        <div className="fj-mascot-card"><img src="/faislajob-mascot-real.webp" alt="Mascotte FaisLaJob" className="fj-mascot-image"/></div>
       </div>
     </section>
 
