@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const portal='src/UserPortal.tsx';
+let s=fs.readFileSync(portal,'utf8');
+if(!s.includes("import SupportFaq from './SupportFaq';"))s=s.replace("import {clientOrderId,clientPublicId,dailyPin,providerMissionId,providerPublicId} from './publicIds';","import {clientOrderId,clientPublicId,dailyPin,providerMissionId,providerPublicId} from './publicIds';\nimport SupportFaq from './SupportFaq';");
+s=s.replace("[['home','⌂','Accueil'],['missions','📋','Mes commandes'],['payments','💳','Paiements'],['profile','👤','Profil']]","[['home','⌂','Accueil'],['missions','📋','Mes commandes'],['payments','💳','Paiements'],['support','❓','Support'],['profile','👤','Profil']]");
+s=s.replace("tab==='payments'?'Paiements & factures':'Ton profil'","tab==='payments'?'Paiements & factures':tab==='support'?'Support & FAQ':'Ton profil'");
+if(!s.includes("{tab==='support'&&<SupportFaq/>}"))s=s.replace("{tab==='profile'&&<ProfileCard user={user} role=\"client\"/>}","{tab==='support'&&<SupportFaq/>}\n  {tab==='profile'&&<ProfileCard user={user} role=\"client\"/>}");
+fs.writeFileSync(portal,s);
+const upgrade='src/client-ui-upgrade.ts';
+let u=fs.readFileSync(upgrade,'utf8');
+u=u.replace("if(a==='support'||a==='messages')go('Profil')","if(a==='support')go('Support');if(a==='messages')go('Profil')");
+u=u.replace("if(a==='support')go('Profil')","if(a==='support')go('Support')");
+fs.writeFileSync(upgrade,u);
+console.log('✓ support FAQ wired to existing Support button');
