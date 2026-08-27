@@ -14,11 +14,27 @@ fs.writeFileSync(upgradeFile,upgrade);
 
 const adminFile=new URL('../src/AdminPortal.tsx',import.meta.url);let admin=fs.readFileSync(adminFile,'utf8');
 if(!admin.includes("import PromotionsAdmin from './PromotionsAdmin';"))admin=admin.replace("import './admin.css';","import './admin.css';\nimport PromotionsAdmin from './PromotionsAdmin';");
-admin=replaceRequired(admin,"useState<'dispatch'|'clients'|'providers'|'categories'|'finance'>('dispatch')","useState<'dispatch'|'clients'|'providers'|'categories'|'promotions'|'finance'>('dispatch')",'admin promotion tab type');
-admin=replaceRequired(admin,"else if(tab==='categories')requests.push(api('/api/categories'));else requests.push(api('/api/admin/finance'));","else if(tab==='categories')requests.push(api('/api/categories'));else if(tab==='promotions')requests.push(Promise.resolve({}));else requests.push(api('/api/admin/finance'));",'promotion loading');
-admin=replaceRequired(admin,"else if(tab==='categories')setCategories(data[1].categories);else{setPayments(data[1].payments);setPayouts(data[1].payouts)}","else if(tab==='categories')setCategories(data[1].categories);else if(tab==='promotions'){}else{setPayments(data[1].payments);setPayouts(data[1].payouts)}",'promotion load result');
-admin=replaceRequired(admin,"tab==='categories'?'Catégories et tarifs':'Finance'","tab==='categories'?'Catégories et tarifs':tab==='promotions'?'Promotions et ristournes':'Finance'",'promotion page title');
-admin=replaceRequired(admin,"<button className={tab==='categories'?'active':''} onClick={()=>setTab('categories')}>🏷️ Catégories</button><button className={tab==='finance'?'active':''}","<button className={tab==='categories'?'active':''} onClick={()=>setTab('categories')}>🏷️ Catégories</button><button className={tab==='promotions'?'active':''} onClick={()=>setTab('promotions')}>🎁 Promotions</button><button className={tab==='finance'?'active':''}",'promotion nav');
-if(!admin.includes("{tab==='promotions'&&<PromotionsAdmin token={token}/>}"))admin=admin.replace(" {tab==='finance'&&<>"," {tab==='promotions'&&<PromotionsAdmin token={token}/>}\n {tab==='finance'&&<>");
+
+// Add promotions to the admin tab union regardless of whether Zones has already been injected.
+if(!/useState<[^>]*'promotions'[^>]*>\('dispatch'\)/.test(admin)){
+  admin=admin.replace(/useState<([^>]*)>\('dispatch'\)/,(full,tabs)=>`useState<${String(tabs).replace("|'finance'","|'promotions'|'finance'")}>('dispatch')`);
+}
+if(!admin.includes("tab==='promotions')requests.push")){
+  if(admin.includes("else if(tab==='zones'){}else requests.push(api('/api/admin/finance'))"))
+    admin=admin.replace("else if(tab==='zones'){}else requests.push(api('/api/admin/finance'))","else if(tab==='zones')requests.push(Promise.resolve({}));else if(tab==='promotions')requests.push(Promise.resolve({}));else requests.push(api('/api/admin/finance'))");
+  else
+    admin=admin.replace("else if(tab==='categories')requests.push(api('/api/categories'));else requests.push(api('/api/admin/finance'));","else if(tab==='categories')requests.push(api('/api/categories'));else if(tab==='promotions')requests.push(Promise.resolve({}));else requests.push(api('/api/admin/finance'));");
+}
+if(!admin.includes("else if(tab==='promotions'){}")){
+  admin=admin.replace("else if(tab==='categories')setCategories(data[1].categories);else{setPayments(data[1].payments);setPayouts(data[1].payouts)}","else if(tab==='categories')setCategories(data[1].categories);else if(tab==='zones'){}else if(tab==='promotions'){}else{setPayments(data[1].payments);setPayouts(data[1].payouts)}");
+}
+if(!admin.includes("tab==='promotions'?'Promotions et ristournes'")){
+  admin=admin.replace("tab==='zones'?'Zones et tarifs':'Finance'","tab==='zones'?'Zones et tarifs':tab==='promotions'?'Promotions et ristournes':'Finance'");
+  admin=admin.replace("tab==='categories'?'Catégories et tarifs':'Finance'","tab==='categories'?'Catégories et tarifs':tab==='promotions'?'Promotions et ristournes':'Finance'");
+}
+if(!admin.includes("onClick={()=>setTab('promotions')}>🎁 Promotions")){
+  admin=admin.replace("<button className={tab==='finance'?'active':''} onClick={()=>setTab('finance')}>💳 Finance</button>","<button className={tab==='promotions'?'active':''} onClick={()=>setTab('promotions')}>🎁 Promotions</button><button className={tab==='finance'?'active':''} onClick={()=>setTab('finance')}>💳 Finance</button>");
+}
+if(!admin.includes("{tab==='promotions'&&<PromotionsAdmin token={token}/>}"))admin=admin.replace("{tab==='finance'&&<>","{tab==='promotions'&&<PromotionsAdmin token={token}/>}\n {tab==='finance'&&<>");
 fs.writeFileSync(adminFile,admin);
 console.log('✓ promotions page, promo square and clear admin form wired');
