@@ -14,11 +14,10 @@ if (!source.includes(marker)) {
   const billingNew = "SELECT m.id,m.provider_id,m.duration_minutes,COALESCE(zcr.hourly_rate_cents,c.hourly_rate_cents) hourly_rate_cents FROM missions m JOIN categories c ON c.id=m.category_id LEFT JOIN zone_category_rates zcr ON zcr.zone_id=m.zone_id AND zcr.category_id=m.category_id WHERE m.id=$1";
   source = source.replace(billingOld, billingNew);
 
-  const missionInsert = /INSERT INTO missions\(client_id,category_id,status,description,scheduled_at\) VALUES\(\$1,\$2,'requested',\$3,\$4\) RETURNING \*/;
-  if (missionInsert.test(source)) {
-    source = source.replace(missionInsert, "INSERT INTO missions(client_id,category_id,status,description,scheduled_at,service_city,zone_id) VALUES($1,$2,'requested',$3,$4,$5,(SELECT id FROM zones WHERE is_active=TRUE AND LOWER(TRIM(city_match))=LOWER(TRIM($5)) LIMIT 1)) RETURNING *");
-    source = source.replace("[clientId,b.categoryId,b.description||null,b.scheduledAt||null]", "[clientId,b.categoryId,b.description||null,b.scheduledAt||null,String(b.serviceCity||'').trim()||null]");
-  }
+  const missionOld = "INSERT INTO missions(client_id,category_id,description,scheduled_at) VALUES($1,$2,$3,$4) RETURNING *";
+  const missionNew = "INSERT INTO missions(client_id,category_id,description,scheduled_at,service_city,zone_id) VALUES($1,$2,$3,$4,$5,(SELECT id FROM zones WHERE is_active=TRUE AND LOWER(TRIM(city_match))=LOWER(TRIM($5)) LIMIT 1)) RETURNING *";
+  source = source.replace(missionOld, missionNew);
+  source = source.replace("[clientId,b.categoryId,b.description?.trim()||null,b.scheduledAt||null]", "[clientId,b.categoryId,b.description?.trim()||null,b.scheduledAt||null,String(b.serviceCity||'').trim()||null]");
 
   const anchor = "app.get('/api/admin/finance'";
   const index = source.indexOf(anchor);
