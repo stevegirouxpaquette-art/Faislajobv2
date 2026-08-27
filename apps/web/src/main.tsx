@@ -4,6 +4,7 @@ import AdminPortal from './AdminPortal';
 import UserPortal from './UserPortal';
 import RequestFlow from './RequestFlow';
 import AuthScreen from './AuthScreen';
+import PromotionsPage from './PromotionsPage';
 import './styles.css';
 import './portal.css';
 import './client-ui-upgrade';
@@ -24,12 +25,14 @@ function RequestBootScreen(){return <main style={{minHeight:'100vh',background:'
 function RootRouter(){
  const[user,setUser]=useState<User|null|undefined>(undefined),path=window.location.pathname;
  const isRequest=path==='/request'||path.startsWith('/request/');
+ const isPromotions=path==='/promotions'||path.startsWith('/promotions/');
  const loadUser=async()=>{try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});if(!r.ok){setUser(null);return}setUser((await r.json()).user)}catch{setUser(null)}};
  useEffect(()=>{loadUser()},[]);
- useEffect(()=>{if(isRequest||user===null||user?.role==='provider'){requestAnimationFrame(()=>window.__fjReveal?.())}},[isRequest,user]);
+ useEffect(()=>{if(isRequest||isPromotions||user===null||user?.role==='provider'){requestAnimationFrame(()=>window.__fjReveal?.())}},[isRequest,isPromotions,user]);
  const logout=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});localStorage.clear();setUser(null);window.location.href='/'};
  if(user===undefined)return isRequest?<RequestBootScreen/>:<main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
  if(isRequest){if(user?.role==='provider')return <RoleGuardMessage user={user}/>;return <RequestFlow/>}
+ if(isPromotions){if(!user)return <AuthScreen onAuthenticated={(next)=>{setUser(next);window.location.href='/promotions'}}/>;if(user.role==='provider')return <RoleGuardMessage user={user}/>;return <PromotionsPage/>}
  if(user)return <UserPortal user={user} onLogout={logout}/>;
  return <AuthScreen onAuthenticated={(next)=>{setUser(next);window.location.href='/'}}/>;
 }
