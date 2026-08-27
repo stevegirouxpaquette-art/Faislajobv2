@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+
+const file = new URL('../src/server.ts', import.meta.url);
+let source = fs.readFileSync(file, 'utf8');
+const marker = '// ZONE PRICING ROUTES';
+
+if (!source.includes(marker)) {
+  source = source.replace(
+    "ALTER TABLE categories ADD COLUMN IF NOT EXISTS hourly_rate_cents INTEGER;",
+    `ALTER TABLE categories ADD COLUMN IF NOT EXISTS hourly_rate_cents INTEGER;\n    CREATE TABLE IF NOT EXISTS zones(\n      id BIGSERIAL PRIMARY KEY,\n      name TEXT NOT NULL UNIQUE,\n      city_match TEXT NOT NULL UNIQUE,\n      is_active BOOLEAN NOT NULL DEFAULT TRUE,\n      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n    );\n    CREATE TABLE IF NOT EXISTS zone_category_rates(\n      zone_id BIGINT NOT NULL REFERENCES zones(id) ON DELETE CASCADE,\n      category_id TEXT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,\n      hourly_rate_cents INTEGER NOT NULL CHECK(hourly_rate_cents > 0),\n      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n      PRIMARY KEY(zone_id,category_id)\n    );\n    ALTER TABLE missions ADD COLUMN IF NOT EXISTS zone_id BIGINT REFERENCES zones(id) ON DELETE SET NULL;\n    ALTER TABLE missions ADD COLUMN IF NOT EXISTS service_city TEXT;`
+  );
+
+  const billingOld = "SELECT m.id,m.provider_id,m.duration_minutes,c.hourly_rate_cents FROM missions m JOIN categories c ON c.id=m.category_id WHERE m.id=$1";
+  const billingNew = "SELECT m.id,m.provider_id,m.duration_minutes,COALESCE(zcr.hourly_rate_cents,c.hourly_rate_cents) hourly_rate_cents FROM missions m JOIN categories c ON c.id=m.category_id LEFT JOIN zone_category_rates zcr ON zcr.zone_id=m.zone_id AND zcr.category_id=m.category_id WHERE m.id=$1";
+  source = source.replace(billingOld, billingNew);
+
+  const missionInsert = /INSERT INTO missions\(client_id,category_id,status,description,scheduled_at\) VALUES\(\$1,\$2,'requested',\$3,\$4\) RETURNING \*/;
+  if (missionInsert.test(source)) {
+    source = source.replace(missionInsert, "INSERT INTO missions(client_id,category_id,status,description,scheduled_at,service_city,zone_id) VALUES($1,$2,'requested',$3,$4,$5,(SELECT id FROM zones WHERE is_active=TRUE AND LOWER(TRIM(city_match))=LOWER(TRIM($5)) LIMIT 1)) RETURNING *");
+    source = source.replace("[clientId,b.categoryId,b.description||null,b.scheduledAt||null]", "[clientId,b.categoryId,b.description||null,b.scheduledAt||null,String(b.serviceCity||'').trim()||null]");
+  }
+
+  const anchor = "app.get('/api/admin/finance'";
+  const index = source.indexOf(anchor);
+  if (index < 0) throw new Error('Could not find admin finance route anchor');
+  const routes = `// ZONE PRICING ROUTES\napp.get('/api/admin/zones',async(request,reply)=>{if(!requireAdmin(request,reply))return;const zones=(await pool.query(\`SELECT z.id,z.name,z.city_match,z.is_active,COALESCE(json_agg(json_build_object('category_id',c.id,'category_name',c.name,'default_hourly_rate_cents',c.hourly_rate_cents,'hourly_rate_cents',zcr.hourly_rate_cents) ORDER BY c.name) FILTER (WHERE c.id IS NOT NULL),'[]'::json) rates FROM zones z CROSS JOIN categories c LEFT JOIN zone_category_rates zcr ON zcr.zone_id=z.id AND zcr.category_id=c.id GROUP BY z.id ORDER BY z.name\`)).rows;return{zones}});\napp.post('/api/admin/zones',async(request,reply)=>{if(!requireAdmin(request,reply))return;const b=request.body as any,name=String(b?.name||'').trim(),cityMatch=String(b?.cityMatch||'').trim();if(!name||!cityMatch)return reply.code(400).send({error:'Nom et ville sont requis'});try{const r=await pool.query('INSERT INTO zones(name,city_match) VALUES($1,$2) RETURNING *',[name,cityMatch]);return reply.code(201).send({zone:r.rows[0]})}catch(e:any){if(e?.code==='23505')return reply.code(409).send({error:'Cette zone ou cette ville existe déjà'});throw e}});\napp.post('/api/admin/zones/:id',async(request,reply)=>{if(!requireAdmin(request,reply))return;const{id}=request.params as any,b=request.body as any,name=String(b?.name||'').trim(),cityMatch=String(b?.cityMatch||'').trim(),isActive=b?.isActive!==false;if(!name||!cityMatch)return reply.code(400).send({error:'Nom et ville sont requis'});const r=await pool.query('UPDATE zones SET name=$1,city_match=$2,is_active=$3,updated_at=NOW() WHERE id=$4 RETURNING *',[name,cityMatch,isActive,id]);if(!r.rowCount)return reply.code(404).send({error:'Zone introuvable'});return{zone:r.rows[0]}});\napp.post('/api/admin/zones/:id/delete',async(request,reply)=>{if(!requireAdmin(request,reply))return;const{id}=request.params as any;await pool.query('UPDATE missions SET zone_id=NULL WHERE zone_id=$1',[id]);const r=await pool.query('DELETE FROM zones WHERE id=$1 RETURNING id',[id]);if(!r.rowCount)return reply.code(404).send({error:'Zone introuvable'});return{ok:true}});\napp.post('/api/admin/zones/:zoneId/rates/:categoryId',async(request,reply)=>{if(!requireAdmin(request,reply))return;const{zoneId,categoryId}=request.params as any,b=request.body as any,hourlyRateCents=Math.round(Number(b?.hourlyRateCents));if(!Number.isFinite(hourlyRateCents)||hourlyRateCents<=0)return reply.code(400).send({error:'Tarif invalide'});await pool.query(\`INSERT INTO zone_category_rates(zone_id,category_id,hourly_rate_cents) VALUES($1,$2,$3) ON CONFLICT(zone_id,category_id) DO UPDATE SET hourly_rate_cents=EXCLUDED.hourly_rate_cents,updated_at=NOW()\`,[zoneId,categoryId,hourlyRateCents]);return{ok:true}});\napp.post('/api/admin/zones/:zoneId/rates/:categoryId/default',async(request,reply)=>{if(!requireAdmin(request,reply))return;const{zoneId,categoryId}=request.params as any;await pool.query('DELETE FROM zone_category_rates WHERE zone_id=$1 AND category_id=$2',[zoneId,categoryId]);return{ok:true}});\n\n`;
+  source = source.slice(0,index)+routes+source.slice(index);
+  fs.writeFileSync(file,source);
+  console.log('✓ zone pricing backend wired');
+} else console.log('✓ zone pricing backend already wired');
