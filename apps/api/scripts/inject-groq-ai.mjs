@@ -62,7 +62,7 @@ app.post('/api/ai/task-next-question',async(request,reply)=>{
   if(!category||!subcategory)return reply.code(400).send({error:'category and subcategory are required'});
   if(description.length>3000)return reply.code(400).send({error:'description is too long'});
   if(answers.length>=6)return{ok:true,model:GROQ_MODEL,result:{done:true,question:null},usage:null};
-  const history=answers.map((a:any,i:number)=>\`${i+1}. Question: \${String(a?.question||'').trim()}\\n   Réponse: \${String(a?.answer||'').trim()}\`).filter((x:string)=>!x.endsWith('Réponse: ')).join('\\n');
+  const history=answers.map((a:any,i:number)=>\`\${i+1}. Question: \${String(a?.question||'').trim()}\\n   Réponse: \${String(a?.answer||'').trim()}\`).filter((x:string)=>!x.endsWith('Réponse: ')).join('\\n');
   try{
     const response=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',headers:{'Authorization':\`Bearer \${GROQ_API_KEY}\`,'Content-Type':'application/json'},signal:AbortSignal.timeout(20000),

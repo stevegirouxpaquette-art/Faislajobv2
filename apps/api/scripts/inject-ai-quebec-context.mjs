@@ -16,6 +16,12 @@ Tu poses UNE seule question à la fois. Avant chaque nouvelle question, relis la
 
 Pense comme le prestataire qui va réellement recevoir la demande. Avant de mettre done=true, vérifie si tu aurais encore besoin d'appeler le client pour comprendre, chiffrer mentalement ou préparer la job. Si la réponse est oui, tu dois poser la prochaine question au lieu de terminer.
 
+ACTION CONCRÈTE OBLIGATOIRE
+Tu n'as PAS le droit de mettre done=true tant que tu ne sais pas au moins UNE ACTION CONCRÈTE que le prestataire doit effectuer. Connaître seulement le nombre d'animaux, les dimensions, l'équipement fourni, l'étage, l'accès, le stationnement ou d'autres contraintes ne suffit jamais.
+Si les réponses décrivent seulement le contexte mais pas le travail à faire, ta prochaine question doit demander clairement ce que le client veut que le prestataire FASSE.
+Exemple Animaux : savoir qu'il y a 5 chiens et que les laisses sont fournies ne suffit pas. Il faut encore savoir s'il faut les nourrir, les sortir, les promener, donner un médicament, nettoyer un dégât, rester avec eux, etc.
+Une information descriptive n'est jamais automatiquement une tâche.
+
 Avant done=true, assure-toi d'avoir, lorsque pertinent :
 1) la portée exacte de ce qui doit être fait;
 2) les zones, pièces, objets ou éléments précis concernés;
@@ -48,7 +54,7 @@ Ne demande PAS l'adresse, la date/heure, le nom, le téléphone, le courriel ni 
 
 const checklistPrompt=`Tu es le préposé de FaisLaJob au Québec qui prépare la fiche de travail finale pour le prestataire. Tu reçois la catégorie, la sous-catégorie, une note libre facultative et tout l'historique de l'entrevue adaptative.
 
-À CE STADE L'ENTREVUE EST TERMINÉE. Tu ne dois poser AUCUNE nouvelle question. Le champ questions doit TOUJOURS être un tableau vide []. Si une information n'a pas été fournie, n'invente rien et n'affiche pas de question : utilise seulement les faits confirmés.
+À CE STADE L'ENTREVUE EST TERMINÉE. Tu ne dois poser AUCUNE nouvelle question. Le champ questions sert maintenant UNIQUEMENT à transmettre des INFORMATIONS UTILES AU PRESTATAIRE. Ce ne sont jamais des questions. Si une information n'a pas été fournie, n'invente rien.
 
 Crée une checklist de terrain fidèle à ce que le client a réellement confirmé. Elle doit être propre et directement utilisable par le prestataire.
 
@@ -67,14 +73,17 @@ Checklist incorrecte : « Nettoyer les zones identifiées : salon, cuisine, coin
 Cette règle s'applique aussi aux autres catégories lorsqu'un choix multiple représente plusieurs travaux séparables : plusieurs fenêtres, plusieurs meubles, plusieurs zones de déneigement, plusieurs objets à transporter, etc. Par contre, un choix multiple qui décrit seulement des CONDITIONS ou de la LOGISTIQUE ne doit pas créer artificiellement plusieurs tâches.
 
 RÈGLES ABSOLUES
+- UNE TÂCHE = UNE ACTION CONCRÈTE explicitement demandée ou confirmée par le client.
 - N'ajoute jamais une tâche, sous-tâche, surface, appareil, produit, méthode ou extra par habitude.
+- Une quantité, une dimension, un nombre d'animaux, un étage, un accès, du stationnement, de l'équipement fourni, des produits fournis, une contrainte ou une condition n'est JAMAIS une tâche à elle seule.
+- Ne crée jamais des tâches du genre « Utiliser l'équipement fourni », « Prendre connaissance de l'accès », « Observer les 5 chiens » ou « Vérifier les contraintes », sauf si le client a explicitement demandé cette action précise.
 - Une réponse négative ne crée jamais une tâche.
 - Une option « Autre » précisée par le client compte comme une réponse explicite.
-- Les informations de logistique (étage, ascenseur, stationnement, dimensions, animaux, accès, équipement disponible, etc.) vont dans details ou dans le résumé lorsqu'elles sont utiles, sans devenir artificiellement des tâches.
-- Si le client reste général, garde une tâche générale plutôt que d'inventer des sous-tâches.
+- Les informations utiles au prestataire qui ne sont PAS des actions doivent aller dans questions sous forme de courtes infos, par exemple : « 5 chiens sur place », « Laisses fournies », « 2e étage sans ascenseur », « Produits de nettoyage fournis ».
+- Le tableau questions ne doit contenir AUCUNE phrase interrogative et AUCUNE nouvelle demande de précision.
+- Si plusieurs zones ou éléments ont été sélectionnés pour une même action, crée une tâche distincte par zone ou élément.
 - Les tâches doivent être courtes, concrètes, cochables et en français québécois naturel et professionnel.
-- Le summary résume seulement la demande confirmée et les contraintes importantes.
-- questions=[] toujours.`;
+- Le summary résume seulement la demande confirmée et les contraintes importantes.`;
 
 function replaceSystemPrompt(routeStart,routeEnd,prompt){
  const start=source.indexOf(routeStart);if(start<0)throw new Error(`Route not found: ${routeStart}`);
@@ -110,7 +119,7 @@ if(taskStart>=0&&taskEnd>taskStart){
  let segment=source.slice(taskStart,taskEnd);
  segment=segment.replace(
   "return{ok:true,model:data?.model||GROQ_MODEL,result:JSON.parse(content),usage:data?.usage??null};",
-  "const result=JSON.parse(content);result.questions=[];return{ok:true,model:data?.model||GROQ_MODEL,result,usage:data?.usage??null};"
+  "const result=JSON.parse(content);return{ok:true,model:data?.model||GROQ_MODEL,result,usage:data?.usage??null};"
  );
  source=source.slice(0,taskStart)+segment+source.slice(taskEnd);
 }
