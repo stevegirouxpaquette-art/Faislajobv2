@@ -29,7 +29,7 @@ Exemples de logique :
 - Déménagement / chargement : quels objets, étages, ascenseur, aide ou équipement pertinent.
 - Animaux / promenade : type/nombre d'animaux, durée souhaitée, particularités utiles.
 
-Préfère une question à choix lorsque 2 à 6 réponses simples couvrent bien le besoin. Utilise une question texte lorsque la réponse doit être libre. Les choix doivent être courts et compréhensibles au Québec. Réponds en français québécois clair et professionnel.`;
+Utilise inputType « choice » lorsqu'une seule réponse doit être choisie. Utilise « multi » lorsque plusieurs réponses peuvent être sélectionnées, par exemple plusieurs pièces ou plusieurs zones. Utilise « text » lorsque la réponse doit être libre. Pour choice ou multi, fournis de 2 à 6 options courtes et compréhensibles au Québec. Pour text, retourne options vide. Réponds en français québécois clair et professionnel.`;
 
 const checklistPrompt = `Tu es l'assistant de FaisLaJob. Tu reçois une catégorie, une sous-catégorie, une description facultative et les réponses données par le client à un entretien.
 
@@ -53,7 +53,7 @@ app.post('/api/ai/task-questions',async(request,reply)=>{
       body:JSON.stringify({model:GROQ_MODEL,reasoning_effort:'low',messages:[
         {role:'system',content:${JSON.stringify(questionPrompt)}},
         {role:'user',content:\`Catégorie: \${category}\\nSous-catégorie: \${subcategory}\\nPrécision libre déjà donnée (peut être vide): \${description||'(aucune)'}\`}
-      ],response_format:{type:'json_schema',json_schema:{name:'faislajob_intake_questions',strict:true,schema:{type:'object',properties:{questions:{type:'array',minItems:3,maxItems:6,items:{type:'object',properties:{id:{type:'string'},question:{type:'string'},help:{type:'string'},inputType:{type:'string',enum:['choice','text']},options:{type:'array',items:{type:'string'}}},required:['id','question','help','inputType','options'],additionalProperties:false}}},required:['questions'],additionalProperties:false}}}})
+      ],response_format:{type:'json_schema',json_schema:{name:'faislajob_intake_questions',strict:true,schema:{type:'object',properties:{questions:{type:'array',minItems:3,maxItems:6,items:{type:'object',properties:{id:{type:'string'},question:{type:'string'},help:{type:'string'},inputType:{type:'string',enum:['choice','multi','text']},options:{type:'array',items:{type:'string'}}},required:['id','question','help','inputType','options'],additionalProperties:false}}},required:['questions'],additionalProperties:false}}}})
     });
     const data=await response.json() as any;
     if(!response.ok){app.log.error({status:response.status,groq:data},'Groq intake questions failed');return reply.code(502).send({error:'AI provider error',status:response.status});}
