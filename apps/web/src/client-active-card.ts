@@ -25,6 +25,17 @@ function removeCard(){document.getElementById('client-active-top-card')?.remove(
 function fmtClock(totalSeconds:number){const s=Math.max(0,Math.floor(totalSeconds));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`}
 function goTo(tabText:string){const btn=[...document.querySelectorAll<HTMLButtonElement>('.user-portal-nav button')].find(b=>(b.textContent||'').includes(tabText));btn?.click();window.scrollTo({top:0,behavior:'smooth'})}
 
+function estimatedMinutes(m:ClientMission){
+  const stored=Number(m.duration_minutes||0);
+  if(Number.isFinite(stored)&&stored>0)return Math.max(15,Math.ceil(stored));
+  const description=String(m.description||'');
+  const ai=description.match(/Temps\s+estim[ée]\s+IA\s*:\s*(\d+(?:[.,]\d+)?)\s*(?:minutes?|min\b)/i);
+  if(ai){const value=Number(ai[1].replace(',','.'));if(Number.isFinite(value)&&value>0)return Math.max(15,Math.ceil(value))}
+  const duration=description.match(/dur[ée]e\s+(?:de\s+)?(\d+(?:[.,]\d+)?)\s*(heures?|hrs?|h|minutes?|min)\b/i);
+  if(duration){const value=Number(duration[1].replace(',','.'));if(Number.isFinite(value)&&value>0){const unit=duration[2].toLowerCase();return Math.max(15,Math.ceil(unit.startsWith('h')?value*60:value))}}
+  return 15;
+}
+
 function palette(m:ClientMission){
   const payment=m.status==='completed'&&m.payment_status!=='paid';
   if(payment)return {bg:'radial-gradient(circle at 25% 20%,rgba(247,181,0,.14),transparent 36%),linear-gradient(135deg,#2d2305,#171305)',border:'#f7b500',accent:'#ffd75a',soft:'#f4df9a',badge:'PAIEMENT REQUIS'};
@@ -36,7 +47,7 @@ function liveNumbers(m:ClientMission){
   const started=m.started_at?new Date(m.started_at).getTime():0;
   const elapsed=started?Math.max(0,Math.floor((Date.now()-started)/1000)):0;
   const elapsedMinutes=Math.max(1,Math.ceil(elapsed/60));
-  const expectedMinutes=Math.max(15,Number(m.duration_minutes||15));
+  const expectedMinutes=estimatedMinutes(m);
   const billableMinutes=m.status==='in_progress'?Math.max(15,elapsedMinutes):expectedMinutes;
   const subtotal=Math.ceil(hourlyRate*billableMinutes/60);
   const fee=Math.ceil(subtotal*.11);
@@ -65,7 +76,7 @@ function render(m:ClientMission){
   card.innerHTML=`<div style="background:#07101f;padding:14px 18px 0;color:#fff"><div style="width:min(1100px,100%);margin:0 auto;background:${p.bg};border:1.5px solid ${p.border};border-radius:24px;padding:20px;box-shadow:0 18px 45px rgba(0,0,0,.34)">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><span style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);color:${p.accent};font-weight:950;letter-spacing:.06em">${p.badge} <b style="width:7px;height:7px;border-radius:50%;background:${p.accent};display:inline-block"></b></span><span style="color:${p.soft};font-size:16px">Commande #${clientOrderId(m.id)}</span></div>
     <div style="margin-top:18px"><strong style="display:block;font-size:clamp(30px,7vw,44px);line-height:1.08;color:#fff"><span style="color:${p.accent}">${icons[m.status]||'●'}</span> ${esc(title)}</strong><span style="display:block;color:${p.soft};margin-top:9px;font-size:18px">${esc(description)}</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;margin-top:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.13)"><div>${providerBlock}</div><div style="text-align:right"><small style="display:block;color:${p.accent};font-weight:950;text-transform:uppercase;letter-spacing:.04em">${m.status==='in_progress'?'Temps écoulé':'Durée'}</small><strong id="client-live-clock" style="display:block;font-size:clamp(29px,8vw,44px);margin-top:3px;color:${m.status==='in_progress'?p.accent:'#fff'}">${m.status==='in_progress'?fmtClock(live.elapsed):`${Math.max(15,Number(m.duration_minutes||15))} min`}</strong><span style="color:${p.soft}">${m.status==='in_progress'?'Facturation en cours':payment?'Mission terminée':'Estimation'}</span></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center;margin-top:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.13)"><div>${providerBlock}</div><div style="text-align:right"><small style="display:block;color:${p.accent};font-weight:950;text-transform:uppercase;letter-spacing:.04em">${m.status==='in_progress'?'Temps écoulé':'Durée'}</small><strong id="client-live-clock" style="display:block;font-size:clamp(29px,8vw,44px);margin-top:3px;color:${m.status==='in_progress'?p.accent:'#fff'}">${m.status==='in_progress'?fmtClock(live.elapsed):`${estimatedMinutes(m)} min`}</strong><span style="color:${p.soft}">${m.status==='in_progress'?'Facturation en cours':payment?'Mission terminée':'Estimation'}</span></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px"><div><small style="display:block;color:${p.accent};font-weight:950;text-transform:uppercase">Facturation</small><strong id="client-live-billed" style="display:block;font-size:clamp(28px,8vw,42px);margin-top:4px">${money(billed)}</strong><span style="color:${p.soft}">${rateHour.toFixed(2).replace('.',',')} $ / h</span></div><div style="text-align:right"><small style="display:block;color:${p.accent};font-weight:950;text-transform:uppercase">${payment?'Total à payer':'Estimé total'}</small><strong id="client-live-total" style="display:block;font-size:clamp(28px,8vw,42px);margin-top:4px">${money(shownTotal)}</strong><span style="color:${p.soft}">Basé sur ${rateHour.toFixed(2).replace('.',',')} $ / h</span></div></div>
     <button id="client-active-top-action" style="width:100%;margin-top:20px;border:1px solid rgba(255,255,255,.17);background:rgba(4,15,24,.35);color:#fff;border-radius:15px;padding:16px;font-size:17px;font-weight:950;text-align:left;display:flex;justify-content:space-between;align-items:center"><span>☷ ${payment?'Voir le paiement':detailsOpen?'Masquer les détails':'Voir les détails de la mission'}</span><span style="font-size:28px;line-height:1">›</span></button>${detailHtml}
   </div></div>`;
