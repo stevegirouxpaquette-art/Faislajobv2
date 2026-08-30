@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "node scripts/inject-push.mjs && node scripts/inject-category-admin.mjs && node scripts/inject-zone-pricing.mjs && node scripts/inject-promotions.mjs && node scripts/inject-client-cancellation.mjs && node scripts/inject-support-messaging.mjs && node scripts/inject-subscriptions.mjs && node scripts/inject-groq-ai.mjs && node scripts/inject-ai-quebec-context.mjs && node scripts/inject-ai-task-quality-v6.mjs && node scripts/inject-mission-checklist.mjs && tsc",
+    "build": "node scripts/inject-push.mjs && node scripts/inject-category-admin.mjs && node scripts/inject-zone-pricing.mjs && node scripts/inject-promotions.mjs && node scripts/inject-client-cancellation.mjs && node scripts/inject-support-messaging.mjs && node scripts/inject-subscriptions.mjs && node scripts/inject-groq-ai.mjs && node scripts/inject-ai-quebec-context.mjs && node scripts/inject-ai-task-quality-v6.mjs && node scripts/inject-mission-checklist.mjs && node scripts/inject-zone-geofence-v2.mjs && tsc",
     "start": "node dist/server.js"
   },
   "dependencies": {
