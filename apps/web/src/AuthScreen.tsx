@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import './public-home.css';
-import './homepage-tweaks.css';
 import './mascot-fix.css';
+import './homepage-tweaks.css';
 import mascotData from './mascot-data';
 
 type User={id:string;email:string;role:'client'|'provider';client_id:string|null;provider_id:string|null;name:string;phone?:string|null};
