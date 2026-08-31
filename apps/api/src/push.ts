@@ -18,7 +18,7 @@ async function sendToUser(pool:PoolLike,userId:number,payload:PushPayload){
   let sent=0;
   for(const row of r.rows){
     try{
-      await webpush.sendNotification({endpoint:row.endpoint,keys:{p256dh:row.p256dh,auth:row.auth}},JSON.stringify({icon:'/favicon.ico',badge:'/favicon.ico',...payload}),{TTL:120});
+      await webpush.sendNotification({endpoint:row.endpoint,keys:{p256dh:row.p256dh,auth:row.auth}},JSON.stringify({icon:'/faislajob-logo.png',badge:'/faislajob-logo.png',...payload}),{TTL:120});
       sent++;
     }catch(e:any){
       const status=Number(e?.statusCode||0);
