@@ -1,7 +1,8 @@
 .fj-mascot-image{
-  right:-10px;
-  width:112%;
-  height:106%;
+  right:-2px;
+  width:auto;
+  height:90%;
+  max-width:243px;
 }
 
 .fj-request i{
@@ -18,9 +19,10 @@
 
 @media(max-width:560px){
   .fj-mascot-image{
-    right:-10px;
-    width:106%;
-    height:101%;
+    right:-2px;
+    width:auto;
+    height:90%;
+    max-width:198px;
   }
 
   .fj-request i{
