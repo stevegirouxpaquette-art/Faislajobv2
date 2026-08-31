@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './public-home.css';
+import './homepage-tweaks.css';
 import './mascot-fix.css';
 import mascotData from './mascot-data';
 
