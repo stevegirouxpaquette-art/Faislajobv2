@@ -4,8 +4,8 @@ self.addEventListener('push',event=>{
   const title=data.title||'FaisLaJob';
   const options={
     body:data.body||'Tu as une nouvelle mise à jour.',
-    icon:data.icon||'/favicon.ico',
-    badge:data.badge||'/favicon.ico',
+    icon:data.icon||'/faislajob-logo.png',
+    badge:data.badge||'/faislajob-logo.png',
     tag:data.tag||'faislajob',
     renotify:true,
     data:{url:data.url||'/'},
