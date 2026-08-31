@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "FaisLaJob",
+  "short_name": "FaisLaJob",
+  "description": "Des services à domicile sur demande avec FaisLaJob.",
+  "lang": "fr-CA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071222",
+  "theme_color": "#071222",
+  "icons": [
+    {
+      "src": "/faislajob-logo-hq.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
