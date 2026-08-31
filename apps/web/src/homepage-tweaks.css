@@ -24,8 +24,9 @@
   padding-bottom:8px;
 }
 
+/* Laisse une séparation nette entre la carte héros et la carte Nouvelle demande. */
 .fj-request{
-  margin-top:-10px;
+  margin-top:12px;
 }
 
 .fj-request i{
@@ -166,7 +167,7 @@
   }
 
   .fj-request{
-    margin-top:-8px;
+    margin-top:12px;
   }
 
   .fj-request i{
