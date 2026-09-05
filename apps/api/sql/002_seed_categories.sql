@@ -5,5 +5,6 @@ INSERT INTO categories (id, name) VALUES
   ('demenagement', 'Déménagement'),
   ('deneigement', 'Déneigement'),
   ('animaux', 'Animaux'),
-  ('voiture', 'Voiture')
+  ('voiture', 'Voiture'),
+  ('garde-enfant-devoirs', 'Garde d’enfant & aide aux devoirs')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
