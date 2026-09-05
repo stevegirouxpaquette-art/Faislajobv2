@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import AdminPortal from './AdminPortal';
 import UserPortal from './UserPortal';
+import ProviderPortalV2 from './ProviderPortalV2';
 import RequestFlow from './RequestFlow';
 import AuthScreen from './AuthScreen';
 import PromotionsPage from './PromotionsPage';
@@ -32,7 +33,7 @@ function RootRouter(){
  if(user===undefined)return isRequest?<RequestBootScreen/>:<main className="page-shell"><section className="flow-card" style={{marginTop:30}}><p className="flow-copy">Chargement de FaisLaJob…</p></section></main>;
  if(isRequest){if(user?.role==='provider')return <RoleGuardMessage user={user}/>;return <RequestFlow/>}
  if(isPromotions){if(!user)return <AuthScreen onAuthenticated={(next)=>{setUser(next);window.location.href='/promotions'}}/>;if(user.role==='provider')return <RoleGuardMessage user={user}/>;return <PromotionsPage/>}
- if(user)return <UserPortal user={user} onLogout={logout}/>;
+ if(user)return user.role==='provider'?<ProviderPortalV2 user={user} onLogout={logout}/>:<UserPortal user={user} onLogout={logout}/>;
  return <AuthScreen onAuthenticated={(next)=>{setUser(next);window.location.href='/'}}/>;
 }
 
