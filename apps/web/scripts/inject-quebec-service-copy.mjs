@@ -22,9 +22,10 @@ request = request
   .replaceAll('La validation OpenStreetMap est temporairement indisponible.', 'La validation de l’adresse est temporairement indisponible.')
   .replaceAll('Adresse de la job sur OpenStreetMap', 'Carte de l’adresse de la job')
   .replace(
-    "Rayon configuré : {zoneCheck.zone.radiusKm} km{zoneCheck.distanceKm!=null?` · environ ${zoneCheck.distanceKm} km du centre`:''}",
-    'Rayon configuré : {zoneCheck.zone.radiusKm} km'
-  );
+    "<br/>Rayon configuré : {zoneCheck.zone.radiusKm} km{zoneCheck.distanceKm!=null?` · environ ${zoneCheck.distanceKm} km du centre`:''}",
+    ''
+  )
+  .replace("<br/>Rayon configuré : {zoneCheck.zone.radiusKm} km", '');
 fs.writeFileSync(requestFile, request);
 
 const terminology = [
