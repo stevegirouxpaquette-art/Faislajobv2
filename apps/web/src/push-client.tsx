@@ -24,7 +24,11 @@ async function getRegistration() {
     throw new Error('Ce navigateur ne supporte pas les notifications push.');
   }
   await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-  return navigator.serviceWorker.ready;
+  const registration = await navigator.serviceWorker.ready;
+  if (!registration.pushManager) {
+    throw new Error('Les notifications push ne sont pas disponibles dans ce mode.');
+  }
+  return registration;
 }
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -78,6 +82,14 @@ export default function PushPanel() {
           return;
         }
 
+        if (showIosHint) {
+          if (!cancelled) {
+            setTone('warn');
+            setMessage('Ouvre FaisLaJob depuis son icône sur l’écran d’accueil pour activer les notifications.');
+          }
+          return;
+        }
+
         const registration = await getRegistration();
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
@@ -103,13 +115,16 @@ export default function PushPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showIosHint]);
 
   const enable = async () => {
     setBusy(true);
     setTone('default');
     setMessage('Activation…');
     try {
+      if (showIosHint) {
+        throw new Error('Ouvre FaisLaJob depuis son icône sur l’écran d’accueil, puis réessaie.');
+      }
       if (!('Notification' in window)) {
         throw new Error('Notifications non supportées sur cet appareil.');
       }
