@@ -10,7 +10,6 @@ import './portal.css';
 import './client-ui-upgrade';
 import './client-experience.css';
 import './profile-logout';
-import './push-client';
 
 declare global{interface Window{__fjReveal?:()=>void}}
 const BRAND_LOGO='/faislajob-logo-hq.svg?v=20260826-1';
