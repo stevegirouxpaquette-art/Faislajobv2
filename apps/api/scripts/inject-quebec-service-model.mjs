@@ -6,15 +6,28 @@ const srcDir = fileURLToPath(new URL('../src/', import.meta.url));
 const serverFile = path.join(srcDir, 'server.ts');
 let server = fs.readFileSync(serverFile, 'utf8');
 
-if (!server.includes("{ id: 'voiture', name: 'Voiture'")) {
-  const anchor = "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n];";
-  if (!server.includes(anchor)) throw new Error('defaultCategories anchor not found');
-  server = server.replace(
-    anchor,
-    "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n  { id: 'voiture', name: 'Voiture', hourlyRateCents: 6000 }, // 1,00 $/min\n  { id: 'garde-enfant-devoirs', name: 'Garde d’enfant & aide aux devoirs', hourlyRateCents: 3000 }, // 0,50 $/min\n];"
-  );
-  fs.writeFileSync(serverFile, server);
+const categoryDefinitions = [
+  { id: 'voiture', name: 'Voiture', rate: 6000, comment: '1,00 $/min' },
+  { id: 'garde-enfant-devoirs', name: 'Garde d’enfant & aide aux devoirs', rate: 3000, comment: '0,50 $/min' },
+  { id: 'a-classer', name: 'Autre demande — approbation admin', rate: 4000, comment: '0,67 $/min' },
+];
+
+const anchor = "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n];";
+if (!server.includes(anchor) && !categoryDefinitions.every(c => server.includes(`{ id: '${c.id}', name:`))) {
+  throw new Error('defaultCategories anchor not found');
 }
+
+for (const c of categoryDefinitions) {
+  if (server.includes(`{ id: '${c.id}', name:`)) continue;
+  const lastCategory = "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n";
+  if (!server.includes(lastCategory)) throw new Error(`default category anchor not found for ${c.id}`);
+  server = server.replace(
+    lastCategory,
+    `${lastCategory}  { id: '${c.id}', name: '${c.name}', hourlyRateCents: ${c.rate} }, // ${c.comment}\n`
+  );
+}
+
+fs.writeFileSync(serverFile, server);
 
 const terminology = [
   ['Partenaires', 'Prestataires'],
@@ -37,4 +50,4 @@ function walk(dir) {
 }
 
 walk(srcDir);
-console.log('✓ catégories Voiture + garde d’enfant/aide aux devoirs et terminologie prestataire appliquées côté API');
+console.log('✓ catégories Voiture + garde d’enfant/aide aux devoirs + Autre demande et terminologie prestataire appliquées côté API');
