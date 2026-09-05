@@ -13,6 +13,7 @@ const categoryRatesBlock = `const defaultCategories = [
   { id: 'demenagement', name: 'Déménagement', hourlyRateCents: 3900 }, // 0,65 $/min
   { id: 'deneigement', name: 'Déneigement', hourlyRateCents: 4200 }, // 0,70 $/min
   { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min
+  { id: 'garde-enfant-devoirs', name: 'Garde d’enfant & aide aux devoirs', hourlyRateCents: 3000 }, // 0,50 $/min
 ];`;
 
 source = source.replace(
