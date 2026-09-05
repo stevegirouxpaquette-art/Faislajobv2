@@ -11,7 +11,7 @@ if (!server.includes("{ id: 'voiture', name: 'Voiture'")) {
   if (!server.includes(anchor)) throw new Error('defaultCategories anchor not found');
   server = server.replace(
     anchor,
-    "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n  { id: 'voiture', name: 'Voiture', hourlyRateCents: 6000 }, // 1,00 $/min\n];"
+    "  { id: 'animaux', name: 'Animaux', hourlyRateCents: 2700 }, // 0,45 $/min\n  { id: 'voiture', name: 'Voiture', hourlyRateCents: 6000 }, // 1,00 $/min\n  { id: 'garde-enfant-devoirs', name: 'Garde d’enfant & aide aux devoirs', hourlyRateCents: 3000 }, // 0,50 $/min\n];"
   );
   fs.writeFileSync(serverFile, server);
 }
@@ -37,4 +37,4 @@ function walk(dir) {
 }
 
 walk(srcDir);
-console.log('✓ catégorie Voiture et terminologie prestataire appliquées côté API');
+console.log('✓ catégories Voiture + garde d’enfant/aide aux devoirs et terminologie prestataire appliquées côté API');
